@@ -121,9 +121,9 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
     if link != '':
         link = re_split(r"pswd:|\|", link)[0]
         link = link.strip()
-
+    LOGGER.info(f'data message {message_args[1]}')
     if ",j" in message_args[1]:
-        LOGGER.info(f'data message {message_args[1]}')
+        
         dataTorrent = rget(f'https://magnetread.onrender.com/special/?date={message_args[1]}')
         LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
         torrentLink = json.loads(dataTorrent.content)
