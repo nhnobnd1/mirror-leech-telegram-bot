@@ -19,6 +19,8 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage
 from bot.helper.listener import MirrorLeechListener
+import json
+from requests import get as rget
 
 
 @new_task
@@ -119,6 +121,13 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
     if link != '':
         link = re_split(r"pswd:|\|", link)[0]
         link = link.strip()
+
+    LOGGER.info(f'data message {message_args[1]}')
+    dataTorrent = rget(f'https://magnetread.onrender.com/special/?date={message_args[1]}')
+    LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
+    torrentLink = json.loads(dataTorrent.content)
+    for torrent in torrentLink:
+        sendMessage(message,torrent)
 
     if reply_to := message.reply_to_message:
         file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
