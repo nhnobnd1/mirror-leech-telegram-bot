@@ -122,11 +122,11 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         link = re_split(r"pswd:|\|", link)[0]
         link = link.strip()
 
-    # LOGGER.info(f'data message {message_args[1]}')
-    # dataTorrent = rget(f'https://magnetread.onrender.com/special/?date={message_args[1]}')
-    # LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
-    # torrentLink = json.loads(dataTorrent.content)
-    torrentLink=["https://www.141jav.com/download/WAAA248.torrent","https://www.141jav.com/download/WAAA247.torrent"]
+    LOGGER.info(f'data message {message_args[1]}')
+    dataTorrent = rget(f'https://magnetread.onrender.com/special/?date={message_args[1]}')
+    LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
+    torrentLink = json.loads(dataTorrent.content)
+    # torrentLink=["https://www.141jav.com/download/WAAA248.torrent","https://www.141jav.com/download/WAAA247.torrent"]
     for torrent in torrentLink:
         await sendMessage(message,torrent)
 
