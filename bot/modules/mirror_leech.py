@@ -125,7 +125,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
         torrentLink = json.loads(dataTorrent.content)
         for torrent in torrentLink:
-            await sendMessage(message,torrent)
+            await sendMessage(message,f'/l {torrent}')
 
     if reply_to := message.reply_to_message:
         file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
