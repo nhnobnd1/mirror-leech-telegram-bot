@@ -1,4 +1,4 @@
-FROM anasty17/mltb:dev
+FROM nhnobnd/leech
 
 WORKDIR /usr/src/app
 RUN chmod 777 /usr/src/app
