@@ -2,7 +2,7 @@
 from signal import signal, SIGINT
 from aiofiles.os import path as aiopath, remove as aioremove
 from aiofiles import open as aiopen
-from os import execl as osexecl
+from os import execl as osexecl, environ
 from psutil import disk_usage, cpu_percent, swap_memory, cpu_count, virtual_memory, net_io_counters, boot_time
 from time import time
 from sys import executable
@@ -24,6 +24,7 @@ import json
 
 
 async def stats(client, message):
+    URL_MAGNET = environ.get('URL_MAGNET', '')
     if await aiopath.exists('.git'):
         last_commit = await cmd_exec("git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'", True)
         last_commit = last_commit[0]
@@ -32,7 +33,7 @@ async def stats(client, message):
     total, used, free, disk = disk_usage('/')
     swap = swap_memory()
     memory = virtual_memory()
-    totalApi = rget(f'https://magnetread.onrender.com/total')
+    totalApi = rget(f'{URL_MAGNET}total')
     count = json.loads(totalApi.content)
 
     stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
