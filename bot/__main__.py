@@ -32,7 +32,7 @@ async def stats(client, message):
     total, used, free, disk = disk_usage('/')
     swap = swap_memory()
     memory = virtual_memory()
-    totalApi = rget(f'https://magnetread.onrender.com/total')
+    totalApi = rget(f'https://node-getmagnet.vercel.app/total')
     count = json.loads(totalApi.content)
 
     stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
