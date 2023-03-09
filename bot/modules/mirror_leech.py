@@ -126,6 +126,12 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         torrentLink = json.loads(dataTorrent.content)
         for torrent in torrentLink:
             await sendMessage(message,torrent)
+    if ",f" in message_args[1]:
+        dataTorrent = rget(f'https://node-getmagnet.vercel.app/special/?date={message_args[1]}')
+        LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
+        torrentLink = json.loads(dataTorrent.content)
+        for torrent in torrentLink:
+            await sendMessage(message,torrent)
 
     if reply_to := message.reply_to_message:
         file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
