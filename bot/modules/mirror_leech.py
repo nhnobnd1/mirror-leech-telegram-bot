@@ -4,8 +4,8 @@ from pyrogram.filters import command
 from base64 import b64encode
 from re import match as re_match, split as re_split
 from asyncio import sleep
-from aiofiles.os import path as aiopath
-
+from aiofiles.os import path as aiopath, 
+from os import environ
 from bot import bot, DOWNLOAD_DIR, LOGGER, config_dict
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type, new_task, sync_to_async
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -121,13 +121,13 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         link = re_split(r"pswd:|\|", link)[0]
         link = link.strip()
     if ",j" in message_args[1]:
-        dataTorrent = rget(f'https://node-getmagnet.vercel.app/special/?date={message_args[1]}')
+        dataTorrent = rget(f'{environ.get('URL_MAGNET','')}special/?date={message_args[1]}')
         LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
         torrentLink = json.loads(dataTorrent.content)
         for torrent in torrentLink:
             await sendMessage(message,torrent)
     if ",f" in message_args[1]:
-        dataTorrent = rget(f'https://node-getmagnet.vercel.app/special/?date={message_args[1]}')
+        dataTorrent = rget(f'{environ.get('URL_MAGNET','')}special/?date={message_args[1]}')
         LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
         torrentLink = json.loads(dataTorrent.content)
         for torrent in torrentLink:
