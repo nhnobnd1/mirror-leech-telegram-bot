@@ -4,7 +4,7 @@ from pyrogram.filters import command
 from base64 import b64encode
 from re import match as re_match, split as re_split
 from asyncio import sleep
-from aiofiles.os import path as aiopath, 
+from aiofiles.os import path as aiopath
 from os import environ
 from bot import bot, DOWNLOAD_DIR, LOGGER, config_dict
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_mega_link, is_gdrive_link, get_content_type, new_task, sync_to_async
