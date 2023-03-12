@@ -34,3 +34,4 @@ tgcrypto
 uvloop
 xattr
 yt-dlp
+speedtest-cli
