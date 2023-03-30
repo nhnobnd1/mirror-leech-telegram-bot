@@ -144,8 +144,8 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
             dataTorrent = rget(f'{URL_MAGNET}?name={message_args[1][1]}-{"{:03d}".format(i)}')
             torrentLink = json.loads(dataTorrent.content)
             await sendMessage(message,"{:03d}".format(i))
-                for torrent in torrentLink:
-                    await sendMessage(message,torrent)
+            for torrent in torrentLink:
+                await sendMessage(message,torrent)
 
     if reply_to := message.reply_to_message:
         file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
