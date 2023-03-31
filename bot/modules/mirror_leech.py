@@ -214,6 +214,7 @@ Number and m:folder_name (folder_name without space) should be always before |ne
         content_type = await sync_to_async(get_content_type, link)
         if content_type is None or re_match(r'text/html|text/plain', content_type):
             try:
+                sleep(30)
                 link = await sync_to_async(direct_link_generator, link)
                 LOGGER.info(f"Generated link: {link}")
             except DirectDownloadLinkException as e:

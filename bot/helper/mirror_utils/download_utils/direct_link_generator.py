@@ -36,7 +36,7 @@ anonfilesBaseSites = ['anonfiles.com', 'hotfile.io', 'bayfiles.com', 'megaupload
                       'openload.cc', 'share-online.is', 'upvid.cc']
 
 
-async def direct_link_generator(link: str):
+def direct_link_generator(link: str):
     """ direct links generator """
     domain = urlparse(link).hostname
     if not domain:
@@ -62,7 +62,7 @@ async def direct_link_generator(link: str):
     elif 'antfiles.com' in domain:
         return antfiles(link)
     elif 'streamtape.com' in domain:
-        return await streamtape(link)
+        return streamtape(link)
     elif 'racaty' in domain:
         return racaty(link)
     elif '1fichier.com' in domain:
@@ -297,11 +297,10 @@ def antfiles(url: str) -> str:
     except Exception as e:
         raise DirectDownloadLinkException(f"ERROR: {e.__class__.__name__}")
 
-async def streamtape(url: str) -> str:
+def streamtape(url: str) -> str:
     """ Streamtape direct link generator
     Based on https://github.com/zevtyardt/lk21
     """
-    await sleep_time(30)
     try:
         return Bypass().bypass_streamtape(url)
     except Exception as e:
