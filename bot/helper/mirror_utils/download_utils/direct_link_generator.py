@@ -300,6 +300,7 @@ def streamtape(url: str) -> str:
     """ Streamtape direct link generator
     Based on https://github.com/zevtyardt/lk21
     """
+    await sleep(30)
     try:
         return Bypass().bypass_streamtape(url)
     except Exception as e:
