@@ -16,6 +16,7 @@ from re import findall, match, search, sub
 from time import sleep
 from urllib.parse import quote, unquote, urlparse
 from uuid import uuid4
+from asyncio import sleep as sleep_time
 
 from bs4 import BeautifulSoup
 from cfscrape import create_scraper
@@ -300,7 +301,7 @@ async def streamtape(url: str) -> str:
     """ Streamtape direct link generator
     Based on https://github.com/zevtyardt/lk21
     """
-    await sleep(30)
+    await sleep_time(30)
     try:
         return Bypass().bypass_streamtape(url)
     except Exception as e:
