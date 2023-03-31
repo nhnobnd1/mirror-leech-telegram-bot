@@ -141,7 +141,14 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
             await sendMessage(message,torrent)
     if "name=" in message_args[1]:
         parts=message_args[1].split("=")
-        for i in range(int(parts[2]),int(parts[3])):
+        if len(message_args[1].split("="))==2:
+            dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
+            LOGGER.info(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
+            torrentLink = json.loads(dataTorrent.content)
+            for torrent in torrentLink:
+                await sendMessage(message,torrent)
+        else:
+            for i in range(int(parts[2]),int(parts[3])):
             dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
             LOGGER.info(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
             torrentLink = json.loads(dataTorrent.content)
