@@ -36,7 +36,7 @@ anonfilesBaseSites = ['anonfiles.com', 'hotfile.io', 'bayfiles.com', 'megaupload
                       'openload.cc', 'share-online.is', 'upvid.cc']
 
 
-def direct_link_generator(link: str):
+async def direct_link_generator(link: str):
     """ direct links generator """
     domain = urlparse(link).hostname
     if not domain:
@@ -62,7 +62,7 @@ def direct_link_generator(link: str):
     elif 'antfiles.com' in domain:
         return antfiles(link)
     elif 'streamtape.com' in domain:
-        return streamtape(link)
+        return await streamtape(link)
     elif 'racaty' in domain:
         return racaty(link)
     elif '1fichier.com' in domain:
