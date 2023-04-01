@@ -94,7 +94,7 @@ class TelegramDownloadHelper:
                 await sendMessage(message, 'Use SuperGroup to download with User!')
                 return
             LOGGER.info(f'check1')
-            message = await user.get_messages(chat_id=message.chat.id, message_ids=message.date)
+            message = await user.get_messages(chat_id=message.chat.id, message_ids=message.id)
         media = message.document or message.photo or message.video or message.audio or \
                  message.voice or message.video_note or message.sticker or message.animation or None
         LOGGER.info(f'hehe chuarn chua {path}')
