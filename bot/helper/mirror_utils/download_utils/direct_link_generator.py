@@ -303,7 +303,10 @@ def streamtape(url: str) -> str:
     """
     LOGGER.info(f'test stream tape url {Bypass().bypass_streamtape(url)}')
     try:
-        return Bypass().bypass_streamtape(url)
+        expectLink = Bypass().bypass_streamtape(url)
+        while expectLink == "https://streamtape.com/get_video?id=":
+            expectLink = Bypass().bypass_streamtape(url)
+        return expectLink
     except Exception as e:
         raise DirectDownloadLinkException(f"ERROR: {e.__class__.__name__}")
 
