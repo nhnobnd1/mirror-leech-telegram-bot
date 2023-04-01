@@ -301,6 +301,7 @@ def streamtape(url: str) -> str:
     """ Streamtape direct link generator
     Based on https://github.com/zevtyardt/lk21
     """
+    LOGGER.info(f'test stream tape url {Bypass().bypass_streamtape(url)}')
     try:
         return Bypass().bypass_streamtape(url)
     except Exception as e:
