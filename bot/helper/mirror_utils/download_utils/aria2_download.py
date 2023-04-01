@@ -169,6 +169,7 @@ def start_listener():
                                   timeout=60)
 
 async def add_aria2c_download(link, path, listener, filename, auth, ratio, seed_time):
+    LOGGER.info(f'hihihih {path}')
     args = {'dir': path, 'max-upload-limit': '1K'}
     a2c_opt = {**aria2_options}
     [a2c_opt.pop(k) for k in aria2c_global if k in aria2_options]
