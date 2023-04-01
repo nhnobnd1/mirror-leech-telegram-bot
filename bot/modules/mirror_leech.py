@@ -164,7 +164,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                 elif reply_to.document and file_.mime_type == 'application/x-bittorrent':
                     link = await reply_to.download()
                 else:
-                    listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, sameDir=sameDir, fake=fake)
+                    # listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, sameDir=sameDir, fake=fake)
                     __run_multi()
                     await TelegramDownloadHelper(listener).add_download(reply_to, f'{path}/', name)
                     return
@@ -226,7 +226,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                         return
         __run_multi()
         LOGGER.info(f'yoyoyoy {sameDir}')
-        listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed, sameDir, fake=fake)
+        # listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed, sameDir, fake=fake)
 
         if is_gdrive_link(link):
             if not isZip and not extract and not isLeech:
