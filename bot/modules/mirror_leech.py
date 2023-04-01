@@ -21,6 +21,7 @@ from bot.helper.telegram_helper.message_utils import sendMessage
 from bot.helper.listener import MirrorLeechListener
 import json
 from requests import get as rget
+import random
 
 @new_task
 async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=False, isLeech=False, sameDir={}):
