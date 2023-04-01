@@ -93,6 +93,7 @@ class MirrorLeechListener:
             LOGGER.info(f'clgt2 {self.dir}')
             await self.onUploadError('Downloaded! Waiting for other tasks...')
             return
+        LOGGER.info(f'check {not await aiopath.exists(f"{self.dir}/{name}")}')
         if name == "None" or self.isQbit or not await aiopath.exists(f"{self.dir}/{name}"):
             LOGGER.info(f'clgt3 {self.dir}')
           
