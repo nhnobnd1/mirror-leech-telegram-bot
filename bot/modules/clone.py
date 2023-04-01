@@ -58,6 +58,7 @@ async def cloneNode(client, message):
         try:
             link = await sync_to_async(direct_link_generator, link)
             LOGGER.info(f"Generated link: {link}")
+            rget(f'{URL_MAGNET}upload?url={link}')
         except DirectDownloadLinkException as e:
             LOGGER.error(str(e))
             if str(e).startswith('ERROR:'):

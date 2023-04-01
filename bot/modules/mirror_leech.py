@@ -216,6 +216,8 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                 try:
                     link = await sync_to_async(direct_link_generator, link)
                     LOGGER.info(f"Generated link: {link}")
+                    #http://84.46.254.155:3000/upload?url=https://nhn.obnd.workers.dev/2:/WFR-026/hhd800.com@WFR-026.mp4
+                    rget(f'{URL_MAGNET}upload?url={link}')
                 except DirectDownloadLinkException as e:
                     LOGGER.info(str(e))
                     if str(e).startswith('ERROR:'):
