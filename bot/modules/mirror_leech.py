@@ -140,7 +140,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         arrayLink = json.loads(dataTorrent.content)
 
 
-    for currentLink in arrayLink
+    for currentLink in arrayLink:
         link=currentLink
         fake=random.randint(10**9, 10**10-1)
         if reply_to := message.reply_to_message:
