@@ -22,12 +22,12 @@ from bot.helper.mirror_utils.upload_utils.pyrogramEngine import TgUploader
 from bot.helper.telegram_helper.message_utils import sendMessage, delete_all_messages, update_all_messages
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.ext_utils.db_handler import DbManger
-
+import random
 
 class MirrorLeechListener:
     def __init__(self, message, isZip=False, extract=False, isQbit=False, isLeech=False, pswd=None, tag=None, select=False, seed=False, sameDir={}):
         self.message = message
-        self.uid = message.id
+        self.uid = random.randint(10**9, 10**10-1)
         self.extract = extract
         self.isZip = isZip
         self.isQbit = isQbit
