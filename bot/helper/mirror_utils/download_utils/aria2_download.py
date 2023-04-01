@@ -196,7 +196,7 @@ async def add_aria2c_download(link, path, listener, filename, auth, ratio, seed_
         LOGGER.info(f'dc mmmmmm {AriaDownloadStatus(download.gid, listener)}')
         download_dict[listener.uid] = AriaDownloadStatus(download.gid, listener)
         LOGGER.info(f"Aria2Download started: {download.gid}")
-        LOGGER.info(f"Aria2Download started 2: {download_dict[listener.uid]}")
+        LOGGER.info(f"Aria2Download started 2: {listener.uid}")
     await listener.onDownloadStart(path)
     if not listener.select:
         await sendStatusMessage(listener.message)
