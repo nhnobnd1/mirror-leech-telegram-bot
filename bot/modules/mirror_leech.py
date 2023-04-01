@@ -29,7 +29,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         return
     mesg = message.text.split('\n')
     LOGGER.info(f'message {mesg}')
-    LOGGER.info(f'message2 {message)}')
+    LOGGER.info(f'message2 {message}')
     message_args = mesg[0].split(maxsplit=1)
     index = 1
     ratio = None
