@@ -257,6 +257,8 @@ Number and m:folder_name (folder_name without space) should be always before |ne
             auth = "Basic " + b64encode(auth.encode()).decode('ascii')
         else:
             auth = ''
+        LOGGER.info(f'clgddddddd {listener}')
+        LOGGER.info(f'clgddddddd2 {path}')
         await add_aria2c_download(link, path, listener, name, auth, ratio, seed_time)
 
 
