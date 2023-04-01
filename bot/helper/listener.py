@@ -96,7 +96,7 @@ class MirrorLeechListener:
         if name == "None" or self.isQbit or not await aiopath.exists(f"{self.dir}/{name}"):
             LOGGER.info(f'clgt3 {self.dir}')
           
-            name = self.uid
+         
             LOGGER.info(f'nameeeeeeeee {name}')
         m_path = f"{self.dir}/{name}"
         LOGGER.info(f'clgt4 {m_path}')
