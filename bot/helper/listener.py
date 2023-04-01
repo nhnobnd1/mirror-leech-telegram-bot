@@ -195,6 +195,9 @@ class MirrorLeechListener:
         else:
             path = m_path
         up_dir, up_name = path.rsplit('/', 1)
+        LOGGER.info(f'up_dir {up_dir}')
+        LOGGER.info(f'up_name {up_name}')
+
         size = await get_path_size(up_dir)
         if self.isLeech:
             m_size = []
