@@ -81,13 +81,16 @@ class MirrorLeechListener:
             name = str(download.name()).replace('/', '')
             gid = download.gid()
         LOGGER.info(f"Download completed: {name}")
+        LOGGER.info(f'clgt {self.dir}')
         if multi_links:
+            LOGGER.info(f'clgt2 {self.dir}')
             await self.onUploadError('Downloaded! Waiting for other tasks...')
             return
         if name == "None" or self.isQbit or not await aiopath.exists(f"{self.dir}/{name}"):
+            LOGGER.info(f'clgt3 {self.dir}')
             name = (await listdir(self.dir))[-1]
         m_path = f"{self.dir}/{name}"
-        LOGGER.info(f'clgt {self.dir}')
+        
         size = await get_path_size(m_path)
         async with queue_dict_lock:
             if self.uid in non_queued_dl:
