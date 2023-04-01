@@ -90,7 +90,7 @@ class MirrorLeechListener:
             LOGGER.info(f'clgt3 {self.dir}')
             name = (await listdir(self.dir))[-1]
         m_path = f"{self.dir}/{name}"
-        
+        LOGGER.info(f'clgt4 {m_path}')
         size = await get_path_size(m_path)
         async with queue_dict_lock:
             if self.uid in non_queued_dl:
