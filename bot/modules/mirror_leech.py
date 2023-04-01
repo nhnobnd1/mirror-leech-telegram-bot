@@ -142,6 +142,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
 
     for currentLink in arrayLink
         link=currentLink
+        fake=random.randint(10**9, 10**10-1)
         if reply_to := message.reply_to_message:
             file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
                     reply_to.voice or reply_to.video_note or reply_to.sticker or reply_to.animation or None
