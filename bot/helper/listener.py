@@ -81,9 +81,12 @@ class MirrorLeechListener:
                 multi_links = True
             LOGGER.info(f'hihi {self.dir}')
             download = download_dict[self.uid]
-            LOGGER.info(f'keke {self.uid}')
+            LOGGER.info(f'keke {download}')
             name = str(download.name()).replace('/', '')
             gid = download.gid()
+            LOGGER.info(f'keke3 {name}')
+            LOGGER.info(f'keke4 {gid}')
+
         LOGGER.info(f"Download completed: {name}")
         LOGGER.info(f'clgt {self.dir}')
         if multi_links:
