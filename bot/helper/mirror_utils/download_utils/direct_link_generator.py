@@ -304,7 +304,7 @@ def streamtape(url: str) -> str:
     LOGGER.info(f'test stream tape url {Bypass().bypass_streamtape(url)}')
     try:
         expectLink = Bypass().bypass_streamtape(url)
-        while expectLink == "https://streamtape.com/get_video?id=":
+        while "https://streamtape.com/get_video?id=" in expectLink :
             sleep(20)
             expectLink = Bypass().bypass_streamtape(url)
         return expectLink
