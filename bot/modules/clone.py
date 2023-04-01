@@ -89,11 +89,11 @@ async def cloneNode(client, message):
             gid = ''.join(SystemRandom().choices(ascii_letters + digits, k=12))
             clone_status = CloneStatus(drive, size, message, gid)
             async with download_dict_lock:
-                download_dict[message.id] = clone_status
+                download_dict[message.date] = clone_status
             await sendStatusMessage(message)
             result, button = await sync_to_async(drive.clone, link)
             async with download_dict_lock:
-                del download_dict[message.id]
+                del download_dict[message.date]
                 count = len(download_dict)
             try:
                 if count == 0:

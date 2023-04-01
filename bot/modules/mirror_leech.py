@@ -71,7 +71,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                     folder_name = f"/{marg[-1]}"
                     if not sameDir:
                         sameDir = set()
-                    sameDir.add(message.id)
+                    sameDir.add(message.date)
         if multi == 0:
             message_args = mesg[0].split(maxsplit=index)
             if len(message_args) > index:
@@ -99,7 +99,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         await sleep(4)
         _mirror_leech(client, nextmsg, isZip, extract, isQbit, isLeech, sameDir)
 
-    path = f'{DOWNLOAD_DIR}{message.id}/{fake}{folder_name}'
+    path = f'{DOWNLOAD_DIR}{message.date}/{fake}{folder_name}'
 
     name = mesg[0].split('|', maxsplit=1)
     if len(name) > 1:

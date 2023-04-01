@@ -42,7 +42,7 @@ async def _ytdl(client, message, isZip=False, isLeech=False, sameDir={}):
         return
     mssg = message.text
     user_id = message.from_user.id
-    msg_id = message.id
+    msg_id = message.date
     qual = ''
     select = False
     multi = 0
@@ -68,7 +68,7 @@ async def _ytdl(client, message, isZip=False, isLeech=False, sameDir={}):
                     folder_name = f"/{marg[-1]}"
                     if not sameDir:
                         sameDir = set()
-                    sameDir.add(message.id)
+                    sameDir.add(message.date)
         if multi == 0:
             args = mssg.split(maxsplit=index)
             if len(args) > index:
@@ -95,7 +95,7 @@ async def _ytdl(client, message, isZip=False, isLeech=False, sameDir={}):
         await sleep(4)
         _ytdl(client, nextmsg, isZip, isLeech, sameDir)
 
-    path = f'{DOWNLOAD_DIR}{message.id}{folder_name}'
+    path = f'{DOWNLOAD_DIR}{message.date}{folder_name}'
 
     name = mssg.split('|', maxsplit=1)
     if len(name) > 1:
