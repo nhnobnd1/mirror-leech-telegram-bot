@@ -28,6 +28,8 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         await sendMessage(message, 'GDRIVE_ID not Provided!')
         return
     mesg = message.text.split('\n')
+    LOGGER.info(f'message {mesg}')
+    LOGGER.info(f'message2 {message)}')
     message_args = mesg[0].split(maxsplit=1)
     index = 1
     ratio = None
@@ -82,7 +84,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
     async def __run_multi():
         if multi <= 1:
             return
-        # await sleep(4)
+        await sleep(4)
         nextmsg = await client.get_messages(chat_id=message.chat.id, message_ids=message.reply_to_message_id + 1)
         msg = message.text.split(maxsplit=mi+1)
         msg[mi] = f"{multi - 1}"
@@ -91,7 +93,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         if len(folder_name) > 0:
             sameDir.add(nextmsg.id)
         nextmsg.from_user = message.from_user
-        # await sleep(4)
+        await sleep(4)
         _mirror_leech(client, nextmsg, isZip, extract, isQbit, isLeech, sameDir)
 
     path = f'{DOWNLOAD_DIR}{message.id}{folder_name}'
