@@ -25,9 +25,9 @@ from bot.helper.ext_utils.db_handler import DbManger
 import random
 
 class MirrorLeechListener:
-    def __init__(self, message, isZip=False, extract=False, isQbit=False, isLeech=False, pswd=None, tag=None, select=False, seed=False, sameDir={}):
+    def __init__(self, message, isZip=False, extract=False, isQbit=False, isLeech=False, pswd=None, tag=None, select=False, seed=False, sameDir={},fake):
         self.message = message
-        self.uid = message.id
+        self.uid = fake
         self.extract = extract
         self.isZip = isZip
         self.isQbit = isQbit
