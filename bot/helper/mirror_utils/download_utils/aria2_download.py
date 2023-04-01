@@ -193,6 +193,7 @@ async def add_aria2c_download(link, path, listener, filename, auth, ratio, seed_
         await sendMessage(listener.message, error)
         return
     async with download_dict_lock:
+        LOGGER.info(f'dc mmmmmm {AriaDownloadStatus(download.gid, listener)}')
         download_dict[listener.uid] = AriaDownloadStatus(download.gid, listener)
         LOGGER.info(f"Aria2Download started: {download.gid}")
     await listener.onDownloadStart(path)
