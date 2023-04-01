@@ -305,6 +305,7 @@ def streamtape(url: str) -> str:
     try:
         expectLink = Bypass().bypass_streamtape(url)
         while expectLink == "https://streamtape.com/get_video?id=":
+            sleep(20)
             expectLink = Bypass().bypass_streamtape(url)
         return expectLink
     except Exception as e:
