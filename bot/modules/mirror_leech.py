@@ -22,13 +22,14 @@ from bot.helper.listener import MirrorLeechListener
 import json
 from requests import get as rget
 import random
-
+import copy
 @new_task
 async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=False, isLeech=False, sameDir={}):
     if not isLeech and not config_dict['GDRIVE_ID']:
         await sendMessage(message, 'GDRIVE_ID not Provided!')
         return
-    message = dict(message)
+    message = copy.deepcopy(message)
+    
     message[id]=random.randint(10**9, 10**10-1)
     mesg = message.text.split('\n')
     LOGGER.info(f'message {mesg}')
