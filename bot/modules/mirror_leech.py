@@ -139,8 +139,8 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         parts=message_args[1].split("=")
 
         LOGGER.info(f'zoday {parts[1]}')
-        LOGGER.info(f'{URL_MAGNET}/tape?name={parts[1]}&min={parts[2]}&max={parts[3]}')
-        dataTorrent = rget(f'{URL_MAGNET}/tape?name={parts[1]}&min={parts[2]}&max={parts[3]}')
+        LOGGER.info(f'{URL_MAGNET}tape?name={parts[1]}&min={parts[2]}&max={parts[3]}')
+        dataTorrent = rget(f'{URL_MAGNET}tape?name={parts[1]}&min={parts[2]}&max={parts[3]}')
         arrayLink = json.loads(dataTorrent.content)
         LOGGER.info(f'zoday 2 {arrayLink}')
 
