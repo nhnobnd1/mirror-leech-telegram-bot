@@ -258,6 +258,9 @@ class MirrorLeechListener:
             for s in m_size:
                 size = size - s
             LOGGER.info(f"Leech Name: {up_name}")
+            LOGGER.info(f"Leech up_dir: {up_dir}")
+            LOGGER.info(f"Leech size: {size}")
+            LOGGER.info(f"Leech self: {self}")
             tg = TgUploader(up_name, up_dir, size, self)
             tg_upload_status = TgUploadStatus(tg, size, gid, self)
             async with download_dict_lock:
