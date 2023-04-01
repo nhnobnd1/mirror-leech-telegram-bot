@@ -248,8 +248,6 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                 auth = "Basic " + b64encode(auth.encode()).decode('ascii')
             else:
                 auth = ''
-            LOGGER.info(f'clgddddddd {listener}')
-            LOGGER.info(f'clgddddddd2 {path}')
             await add_aria2c_download(link, path, listener, name, auth, ratio, seed_time)
 
 
