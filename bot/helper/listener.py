@@ -72,8 +72,11 @@ class MirrorLeechListener:
                 
                 path = f"{self.dir}/{folder_name}"
                 des_path = f"{DOWNLOAD_DIR}{list(self.sameDir)[0]}/{folder_name}"
+                LOGGER.info(f'??????? {des_path}')
                 await makedirs(des_path, exist_ok=True)
                 for subdir in await listdir(path):
+                    LOGGER.info(f'nice {des_path}')
+
                     sub_path = f"{self.dir}/{folder_name}/{subdir}"
                     if subdir in await listdir(des_path):
                         sub_path = await rename(sub_path, f"{self.dir}/{folder_name}/1-{subdir}")

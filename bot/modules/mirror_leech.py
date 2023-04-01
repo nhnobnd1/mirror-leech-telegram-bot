@@ -234,7 +234,7 @@ Number and m:folder_name (folder_name without space) should be always before |ne
                     __run_multi()
                     return
     __run_multi()
-
+    LOGGER.info(f'yoyoyoy {sameDir}')
     listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed, sameDir)
 
     if is_gdrive_link(link):
