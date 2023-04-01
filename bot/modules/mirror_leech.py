@@ -71,6 +71,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                     folder_name = f"/{marg[-1]}"
                     if not sameDir:
                         sameDir = set()
+                    
                     sameDir.add(message.date)
         if multi == 0:
             message_args = mesg[0].split(maxsplit=index)
