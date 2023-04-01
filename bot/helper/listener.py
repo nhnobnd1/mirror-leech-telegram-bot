@@ -55,6 +55,8 @@ class MirrorLeechListener:
             pass
 
     async def onDownloadStart(self):
+        LOGGER.info(f'download ne {self.uid}')
+
         if self.isSuperGroup and config_dict['INCOMPLETE_TASK_NOTIFIER'] and DATABASE_URL:
             await DbManger().add_incomplete_task(self.message.chat.id, self.message.link, self.tag)
 
