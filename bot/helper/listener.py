@@ -68,6 +68,8 @@ class MirrorLeechListener:
             if len(self.sameDir) > 1:
                 self.sameDir.remove(self.uid)
                 folder_name = (await listdir(self.dir))[-1]
+                LOGGER.info(f'hehe {self.dir}')
+                
                 path = f"{self.dir}/{folder_name}"
                 des_path = f"{DOWNLOAD_DIR}{list(self.sameDir)[0]}/{folder_name}"
                 await makedirs(des_path, exist_ok=True)
@@ -77,7 +79,9 @@ class MirrorLeechListener:
                         sub_path = await rename(sub_path, f"{self.dir}/{folder_name}/1-{subdir}")
                     await move(sub_path, des_path)
                 multi_links = True
+            LOGGER.info(f'hihi {self.dir}')
             download = download_dict[self.uid]
+            LOGGER.info(f'keke {self.uid}')
             name = str(download.name()).replace('/', '')
             gid = download.gid()
         LOGGER.info(f"Download completed: {name}")
