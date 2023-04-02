@@ -129,11 +129,11 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
    
     arrayLink=[message_args[1]]
    
-    page=1
+    page=int(message_args[1].split("=")[1])
   
     while page <3800:
         if "page=" in message_args[1]:
-            parts=message_args[1].split("=")
+            
           
             LOGGER.info(f'zoday {page}')
             LOGGER.info(f'{URL_MAGNET}park?page={page}')
