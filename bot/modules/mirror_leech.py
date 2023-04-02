@@ -133,15 +133,14 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
   
     while page <3800:
         if "page=" in message_args[1]:
+            parts=message_args[1].split("=")
+            page = int(parts[1])
+            LOGGER.info(f'zoday {parts[1]}')
+            LOGGER.info(f'{URL_MAGNET}park?page={parts[1]}')
         
-        parts=message_args[1].split("=")
-        page = int(parts[1])
-        LOGGER.info(f'zoday {parts[1]}')
-        LOGGER.info(f'{URL_MAGNET}park?page={parts[1]}')
-       
-        dataTorrent = rget(f'{URL_MAGNET}park?page={page}')
-        arrayLink = json.loads(dataTorrent.content)
-        LOGGER.info(f'zoday 2 {arrayLink}')
+            dataTorrent = rget(f'{URL_MAGNET}park?page={page}')
+            arrayLink = json.loads(dataTorrent.content)
+            LOGGER.info(f'zoday 2 {arrayLink}')
         await sendMessage(message, page)
         await sendMessage(message, len(arrayLink))
         for index, currentLink in enumerate(arrayLink):
