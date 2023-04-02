@@ -17,7 +17,6 @@ from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot import config_dict, DRIVES_NAMES, DRIVES_IDS, INDEX_URLS, GLOBAL_EXTENSION_FILTER
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, setInterval
 from bot.helper.ext_utils.fs_utils import get_mime_type
-from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.ext_utils.bot_utils import async_to_sync
 
 LOGGER = getLogger(__name__)
@@ -605,10 +604,8 @@ class GoogleDriveHelper:
         if not telegraph_content:
             return "", None
 
-        path = [async_to_sync(telegraph.create_page, title='Mirror-Leech-Bot Drive Search',
-                content=content)["path"] for content in telegraph_content]
-        if len(path) > 1:
-            async_to_sync(telegraph.edit_telegraph, path, telegraph_content)
+        
+        
 
         msg = f"<b>Found {contents_count} result for <i>{fileName}</i></b>"
         buttons = ButtonMaker()
