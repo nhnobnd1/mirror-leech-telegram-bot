@@ -141,7 +141,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
             await sendMessage(message,torrent)
     if "name=" in message_args[1]:
         parts=message_args[1].split("=")
-        
+        #test cai jenkins
         if len(parts)==2:
             dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}')
             LOGGER.info(f'{URL_MAGNET}?name={parts[1]}')
