@@ -247,7 +247,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                             __run_multi()
                             return
             __run_multi()
-            LOGGER.info(f'vcl index ${index}.  array')
+            LOGGER.info(f'vcl index ${index}.  array {len(arrayLink)}')
             if index == len(arrayLink)-1:
                 page=page+1
             LOGGER.info(f'yoyoyoy {sameDir}')
