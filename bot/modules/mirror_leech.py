@@ -135,19 +135,18 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         if "page=" in message_args[1]:
             parts=message_args[1].split("=")
           
-            LOGGER.info(f'zoday {parts[1]}')
-            LOGGER.info(f'{URL_MAGNET}park?page={parts[1]}')
+            LOGGER.info(f'zoday {page}')
+            LOGGER.info(f'{URL_MAGNET}park?page={page}')
         
             dataTorrent = rget(f'{URL_MAGNET}park?page={page}')
             arrayLink = json.loads(dataTorrent.content)
             LOGGER.info(f'zoday 2 {arrayLink}')
-        await sendMessage(message, page)
-        await sendMessage(message, len(arrayLink))
+        await sendMessage(message, f'page: {page}')
+        await sendMessage(message, f'number of page: {len(arrayLink)}')
         for index, currentLink in enumerate(arrayLink):
             link=currentLink
             fake=random.randint(10**9, 10**10-1)
             path = f'{DOWNLOAD_DIR}/{fake}{folder_name}'
-            await sendMessage(message, index)
             if reply_to := message.reply_to_message:
                 file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
                         reply_to.voice or reply_to.video_note or reply_to.sticker or reply_to.animation or None
