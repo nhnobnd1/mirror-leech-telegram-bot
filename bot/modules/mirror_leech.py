@@ -147,22 +147,22 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         dataTorrent = rget(f'{URL_MAGNET}render-direct?name={parts[1]}')
         arrayLink = json.loads(dataTorrent.content)
         LOGGER.info(f'zoday 2 {arrayLink}')
-    if "page=" in message_args[1]:
+   
+    if ",j" in message_args[1]:
+        dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
+       
+        arrayLink = json.loads(dataTorrent.content)
+    while page <3800:
+        if "page=" in message_args[1]:
         
         parts=message_args[1].split("=")
         page = int(parts[1])
         LOGGER.info(f'zoday {parts[1]}')
         LOGGER.info(f'{URL_MAGNET}park?page={parts[1]}')
        
-        dataTorrent = rget(f'{URL_MAGNET}park?page={parts[1]}')
+        dataTorrent = rget(f'{URL_MAGNET}park?page={page}')
         arrayLink = json.loads(dataTorrent.content)
         LOGGER.info(f'zoday 2 {arrayLink}')
-
-    if ",j" in message_args[1]:
-        dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
-       
-        arrayLink = json.loads(dataTorrent.content)
-    while page <3800:
         await sendMessage(message, page)
         await sendMessage(message, len(arrayLink))
         for index, currentLink in enumerate(arrayLink):
