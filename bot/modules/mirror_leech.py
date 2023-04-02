@@ -162,7 +162,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
        
         arrayLink = json.loads(dataTorrent.content)
-    while page <3800
+    while page <3800:
         await sendMessage(message, page)
         await sendMessage(message, len(arrayLink))
         for index, currentLink in enumerate(arrayLink):
