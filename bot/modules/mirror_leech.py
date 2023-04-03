@@ -21,13 +21,17 @@ from bot.helper.telegram_helper.message_utils import sendMessage
 from bot.helper.listener import MirrorLeechListener
 import json
 from requests import get as rget
-
+import random
+import copy
 @new_task
 async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=False, isLeech=False, sameDir={}):
     if not isLeech and not config_dict['GDRIVE_ID']:
         await sendMessage(message, 'GDRIVE_ID not Provided!')
         return
+   
     mesg = message.text.split('\n')
+    LOGGER.info(f'message {mesg}')
+    LOGGER.info(f'message2 {message}')
     message_args = mesg[0].split(maxsplit=1)
     index = 1
     ratio = None
@@ -66,6 +70,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
                     folder_name = f"/{marg[-1]}"
                     if not sameDir:
                         sameDir = set()
+                    
                     sameDir.add(message.id)
         if multi == 0:
             message_args = mesg[0].split(maxsplit=index)
@@ -94,7 +99,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         await sleep(4)
         _mirror_leech(client, nextmsg, isZip, extract, isQbit, isLeech, sameDir)
 
-    path = f'{DOWNLOAD_DIR}{message.id}{folder_name}'
+   
 
     name = mesg[0].split('|', maxsplit=1)
     if len(name) > 1:
@@ -121,141 +126,137 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
         link = re_split(r"pswd:|\|", link)[0]
         link = link.strip()
     URL_MAGNET = environ.get('URL_MAGNET', '')
+   
+    arrayLink=[message_args[1]]
+    if "name=" in message_args[1]:
+      #example : name=adn-234
+        parts=message_args[1].split("=")
+
+        nameFile=parts[1].split("-")
+        dataTorrent = rget(f'{URL_MAGNET}tape?name={nameFile[0]}&min={nameFile[1]}&max={nameFile[1]}')
+        arrayLink = json.loads(dataTorrent.content)
+        LOGGER.info(f'zoday 2 {arrayLink}')
     if ",j" in message_args[1]:
         dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
-        LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
-        torrentLink = json.loads(dataTorrent.content)
-        for torrent in torrentLink:
-            await sendMessage(message,torrent)
-    if ",f" in message_args[1]:
-        dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
-        LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
-        torrentLink = json.loads(dataTorrent.content)
-        for torrent in torrentLink:
-            await sendMessage(message,torrent)
-    if ",t" in message_args[1]:
-        dataTorrent = rget(f'{URL_MAGNET}special/?date={message_args[1]}')
-        LOGGER.info(f'data response{json.loads(dataTorrent.content)}')
-        torrentLink = json.loads(dataTorrent.content)
-        for torrent in torrentLink:
-            await sendMessage(message,torrent)
-    if "name=" in message_args[1]:
-        parts=message_args[1].split("=")
        
-        if len(parts)==2:
-            dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}')
-            LOGGER.info(f'{URL_MAGNET}?name={parts[1]}')
-            torrentLink = json.loads(dataTorrent.content)
-            for torrent in torrentLink:
-                await sendMessage(message,torrent)
-        else:
-            for i in range(int(parts[2]),int(parts[3])):
-                dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
-                LOGGER.info(f'{URL_MAGNET}?name={parts[1]}-{"{:03d}".format(i)}')
-                torrentLink = json.loads(dataTorrent.content)
-                await sendMessage(message,f'{parts[1]}-{"{:03d}".format(i)}')
-                for torrent in torrentLink:
-                    await sendMessage(message,torrent)
+        arrayLink = json.loads(dataTorrent.content)
+      
+    if "get=" in message_args[1]:
+      
+        parts=message_args[1].split("=")
+      
+       
+        dataTorrent = rget(f'{URL_MAGNET}render-direct?name={parts[1]}')
+        arrayLink = json.loads(dataTorrent.content)
+        LOGGER.info(f'zoday 2 {arrayLink}')
 
-    if reply_to := message.reply_to_message:
-        file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
-                 reply_to.voice or reply_to.video_note or reply_to.sticker or reply_to.animation or None
-        if not reply_to.from_user.is_bot:
-            if username := reply_to.from_user.username:
-                tag = f"@{username}"
-            else:
-                tag = reply_to.from_user.mention
-        if len(link) == 0 or not is_url(link) and not is_magnet(link):
-            if file_ is None:
-                reply_text = reply_to.text.split(maxsplit=1)[0].strip()
-                if is_url(reply_text) or is_magnet(reply_text):
-                    link = reply_text
-            elif reply_to.document and file_.mime_type == 'application/x-bittorrent':
-                link = await reply_to.download()
-            else:
-                listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, sameDir=sameDir)
-                __run_multi()
-                await TelegramDownloadHelper(listener).add_download(reply_to, f'{path}/', name)
-                return
-
-    if not is_url(link) and not is_magnet(link) and not await aiopath.exists(link):
-        help_msg = '''
-<code>/cmd</code> link |newname pswd: xx(zip/unzip)
-
-<b>By replying to link/file:</b>
-<code>/cmd</code> |newname pswd: xx(zip/unzip)
-
-<b>Direct link authorization:</b>
-<code>/cmd</code> link |newname pswd: xx(zip/unzip)
-<b>username</b>
-<b>password</b>
-
-<b>Bittorrent selection:</b>
-<code>/cmd</code> <b>s</b> link or by replying to file/link
-This option should be always before |newname or pswd:
-
-<b>Bittorrent seed</b>:
-<code>/cmd</code> <b>d</b> link or by replying to file/link
-To specify ratio and seed time add d:ratio:time. Ex: d:0.7:10 (ratio and time) or d:0.7 (only ratio) or d::10 (only time) where time in minutes.
-Those options should be always before |newname or pswd:
-
-<b>Multi links only by replying to first link/file:</b>
-<code>/cmd</code> 10(number of links/files)
-Number should be always before |newname or pswd:
-
-<b>Multi links within same upload directory only by replying to first link/file:</b>
-<code>/cmd</code> 10(number of links/files) m:folder_name
-Number and m:folder_name (folder_name without space) should be always before |newname or pswd:
-
-<b>NOTES:</b>
-1. When use cmd by reply don't add any option in link msg! always add them after cmd msg!
-2. You can't add those options <b>|newname, pswd:</b> randomly. They should be arranged like exmaple above, rename then pswd. Those options should be after the link if link along with the cmd and after any other option
-3. You can add those options <b>d, s and multi</b> randomly. Ex: <code>/cmd</code> d:1:20 s 10 <b>or</b> <code>/cmd</code> s 10 d:0.5:100
-4. Commands that start with <b>qb</b> are ONLY for torrents.
-'''
-        await sendMessage(message, help_msg)
-        return
-
-    LOGGER.info(link)
-
-    if not is_mega_link(link) and not isQbit and not is_magnet(link) \
-       and not is_gdrive_link(link) and not link.endswith('.torrent'):
-        content_type = await sync_to_async(get_content_type, link)
-        if content_type is None or re_match(r'text/html|text/plain', content_type):
-            try:
-                link = await sync_to_async(direct_link_generator, link)
-                LOGGER.info(f"Generated link: {link}")
-            except DirectDownloadLinkException as e:
-                LOGGER.info(str(e))
-                if str(e).startswith('ERROR:'):
-                    await sendMessage(message, str(e))
+    for currentLink in arrayLink:
+        link=currentLink
+        fake=random.randint(10**9, 10**10-1)
+        path = f'{DOWNLOAD_DIR}/{fake}{folder_name}'
+        if reply_to := message.reply_to_message:
+            file_ = reply_to.document or reply_to.photo or reply_to.video or reply_to.audio or \
+                    reply_to.voice or reply_to.video_note or reply_to.sticker or reply_to.animation or None
+            if not reply_to.from_user.is_bot:
+                if username := reply_to.from_user.username:
+                    tag = f"@{username}"
+                else:
+                    tag = reply_to.from_user.mention
+            if len(link) == 0 or not is_url(link) and not is_magnet(link):
+                if file_ is None:
+                    reply_text = reply_to.text.split(maxsplit=1)[0].strip()
+                    if is_url(reply_text) or is_magnet(reply_text):
+                        link = reply_text
+                elif reply_to.document and file_.mime_type == 'application/x-bittorrent':
+                    link = await reply_to.download()
+                else:
+                    listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, sameDir=sameDir, fake=fake)
                     __run_multi()
+                    await TelegramDownloadHelper(listener).add_download(reply_to, f'{path}/', name)
                     return
-    __run_multi()
 
-    listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed, sameDir)
+        if not is_url(link) and not is_magnet(link) and not await aiopath.exists(link):
+            help_msg = '''
+    <code>/cmd</code> link |newname pswd: xx(zip/unzip)
 
-    if is_gdrive_link(link):
-        if not isZip and not extract and not isLeech:
-            gmsg = f"Use /{BotCommands.CloneCommand} to clone Google Drive file/folder\n\n"
-            gmsg += f"Use /{BotCommands.ZipMirrorCommand[0]} to make zip of Google Drive folder\n\n"
-            gmsg += f"Use /{BotCommands.UnzipMirrorCommand[0]} to extracts Google Drive archive folder/file"
-            await sendMessage(message, gmsg)
+    <b>By replying to link/file:</b>
+    <code>/cmd</code> |newname pswd: xx(zip/unzip)
+
+    <b>Direct link authorization:</b>
+    <code>/cmd</code> link |newname pswd: xx(zip/unzip)
+    <b>username</b>
+    <b>password</b>
+
+    <b>Bittorrent selection:</b>
+    <code>/cmd</code> <b>s</b> link or by replying to file/link
+    This option should be always before |newname or pswd:
+
+    <b>Bittorrent seed</b>:
+    <code>/cmd</code> <b>d</b> link or by replying to file/link
+    To specify ratio and seed time add d:ratio:time. Ex: d:0.7:10 (ratio and time) or d:0.7 (only ratio) or d::10 (only time) where time in minutes.
+    Those options should be always before |newname or pswd:
+
+    <b>Multi links only by replying to first link/file:</b>
+    <code>/cmd</code> 10(number of links/files)
+    Number should be always before |newname or pswd:
+
+    <b>Multi links within same upload directory only by replying to first link/file:</b>
+    <code>/cmd</code> 10(number of links/files) m:folder_name
+    Number and m:folder_name (folder_name without space) should be always before |newname or pswd:
+
+    <b>NOTES:</b>
+    1. When use cmd by reply don't add any option in link msg! always add them after cmd msg!
+    2. You can't add those options <b>|newname, pswd:</b> randomly. They should be arranged like exmaple above, rename then pswd. Those options should be after the link if link along with the cmd and after any other option
+    3. You can add those options <b>d, s and multi</b> randomly. Ex: <code>/cmd</code> d:1:20 s 10 <b>or</b> <code>/cmd</code> s 10 d:0.5:100
+    4. Commands that start with <b>qb</b> are ONLY for torrents.
+    '''
+            await sendMessage(message, help_msg)
+            return
+
+        LOGGER.info(link)
+
+        if not is_mega_link(link) and not isQbit and not is_magnet(link) \
+        and not is_gdrive_link(link) and not link.endswith('.torrent'):
+            content_type = await sync_to_async(get_content_type, link)
+            if content_type is None or re_match(r'text/html|text/plain', content_type):
+                try:
+                    link = await sync_to_async(direct_link_generator, link)
+                    LOGGER.info(f"Generated link: {link}")
+                    #http://84.46.254.155:3000/upload?url=https://nhn.obnd.workers.dev/2:/WFR-026/hhd800.com@WFR-026.mp4
+                    rget(f'{URL_MAGNET}upload?url={link}')
+                except DirectDownloadLinkException as e:
+                    LOGGER.info(str(e))
+                    if str(e).startswith('ERROR:'):
+                        await sendMessage(message, str(e))
+                        __run_multi()
+                        return
+        __run_multi()
+        LOGGER.info(f'yoyoyoy {sameDir}')
+        listener = MirrorLeechListener(message, isZip, extract, isQbit, isLeech, pswd, tag, select, seed, sameDir, fake=fake)
+
+        if is_gdrive_link(link):
+            if not isZip and not extract and not isLeech:
+                gmsg = f"Use /{BotCommands.CloneCommand} to clone Google Drive file/folder\n\n"
+                gmsg += f"Use /{BotCommands.ZipMirrorCommand[0]} to make zip of Google Drive folder\n\n"
+                gmsg += f"Use /{BotCommands.UnzipMirrorCommand[0]} to extracts Google Drive archive folder/file"
+                await sendMessage(message, gmsg)
+            else:
+                await add_gd_download(link, path, listener, name)
+        elif is_mega_link(link):
+            await add_mega_download(link, f'{path}/', listener, name)
+        elif isQbit:
+            await add_qb_torrent(link, path, listener, ratio, seed_time)
         else:
-            await add_gd_download(link, path, listener, name)
-    elif is_mega_link(link):
-        await add_mega_download(link, f'{path}/', listener, name)
-    elif isQbit:
-        await add_qb_torrent(link, path, listener, ratio, seed_time)
-    else:
-        if len(mesg) > 1 and not mesg[1].startswith('Tag:'):
-            ussr = mesg[1]
-            pssw = mesg[2] if len(mesg) > 2 else ''
-            auth = f"{ussr}:{pssw}"
-            auth = "Basic " + b64encode(auth.encode()).decode('ascii')
-        else:
-            auth = ''
-        await add_aria2c_download(link, path, listener, name, auth, ratio, seed_time)
+            if len(mesg) > 1 and not mesg[1].startswith('Tag:'):
+                ussr = mesg[1]
+                pssw = mesg[2] if len(mesg) > 2 else ''
+                auth = f"{ussr}:{pssw}"
+                auth = "Basic " + b64encode(auth.encode()).decode('ascii')
+            else:
+                auth = ''
+            LOGGER.info(f'clgddddddd {listener}')
+            LOGGER.info(f'clgddddddd2 {path}')
+            await add_aria2c_download(link, path, listener, name, auth, ratio, seed_time)
 
 
 async def mirror(client, message):
@@ -293,6 +294,7 @@ async def qb_unzip_leech(client, message):
 
 async def qb_zip_leech(client, message):
     _mirror_leech(client, message, True, isQbit=True, isLeech=True)
+
 
 bot.add_handler(MessageHandler(mirror, filters=command(BotCommands.MirrorCommand) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(unzip_mirror, filters=command(BotCommands.UnzipMirrorCommand) & CustomFilters.authorized))
