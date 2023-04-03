@@ -154,7 +154,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
 
     for currentLink in arrayLink:
         link=currentLink
-        #
+        #hehe
         fake=random.randint(10**9, 10**10-1)
         path = f'{DOWNLOAD_DIR}/{fake}{folder_name}'
         if reply_to := message.reply_to_message:
