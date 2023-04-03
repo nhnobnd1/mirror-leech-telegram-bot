@@ -131,7 +131,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
     if "name=" in message_args[1]:
       #example : name=adn-234
       #clgt
-      #refact
+      
         parts=message_args[1].split("=")
 
         nameFile=parts[1].split("-")
