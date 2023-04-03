@@ -296,7 +296,7 @@ async def qb_unzip_leech(client, message):
 async def qb_zip_leech(client, message):
     _mirror_leech(client, message, True, isQbit=True, isLeech=True)
 
-
+#asdasd
 bot.add_handler(MessageHandler(mirror, filters=command(BotCommands.MirrorCommand) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(unzip_mirror, filters=command(BotCommands.UnzipMirrorCommand) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(zip_mirror, filters=command(BotCommands.ZipMirrorCommand) & CustomFilters.authorized))
