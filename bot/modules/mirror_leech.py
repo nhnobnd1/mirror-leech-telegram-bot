@@ -141,9 +141,7 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
             await sendMessage(message,torrent)
     if "name=" in message_args[1]:
         parts=message_args[1].split("=")
-        #test cai jenkins
-        #qwe
-        #222
+       
         if len(parts)==2:
             dataTorrent = rget(f'{URL_MAGNET}?name={parts[1]}')
             LOGGER.info(f'{URL_MAGNET}?name={parts[1]}')
@@ -296,9 +294,6 @@ async def qb_unzip_leech(client, message):
 async def qb_zip_leech(client, message):
     _mirror_leech(client, message, True, isQbit=True, isLeech=True)
 
-#asdasd
-#hehe
-#test build
 bot.add_handler(MessageHandler(mirror, filters=command(BotCommands.MirrorCommand) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(unzip_mirror, filters=command(BotCommands.UnzipMirrorCommand) & CustomFilters.authorized))
 bot.add_handler(MessageHandler(zip_mirror, filters=command(BotCommands.ZipMirrorCommand) & CustomFilters.authorized))
