@@ -1,0 +1,21 @@
+pipeline {
+    agent any
+    stages {
+        stage('Check and Stop Docker container') {
+            steps {
+                script {
+                    def containerExists = sh(script: "docker ps -a --filter name=obnd5 --format '{{.Names}}'", returnStdout: true).trim()
+                    if (containerExists) {
+                        sh 'docker stop obnd5'
+                    }
+                }
+            }
+        }
+        stage('Build and Run Docker container') {
+            steps {
+                sh 'docker build -t obnd5 .'
+                sh 'docker run --name obnd5 -p 888:888 obnd5'
+            }
+        }
+    }
+}
