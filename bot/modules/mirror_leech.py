@@ -131,9 +131,9 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
    
     page=int(message_args[1].split("=")[1])
   
-    while page <3800:
+    while page < 3800:
         if "page=" in message_args[1]:
-           
+            
           
             LOGGER.info(f'zoday {page}')
             LOGGER.info(f'{URL_MAGNET}park?page={page}')
@@ -143,6 +143,9 @@ async def _mirror_leech(client, message, isZip=False, extract=False, isQbit=Fals
             LOGGER.info(f'zoday 2 {arrayLink}')
         await sendMessage(message, f'page: {page}')
         await sendMessage(message, f'number of page: {len(arrayLink)}')
+        if len(arrayLink)==0:
+            page +=1
+            continue
         for index, currentLink in enumerate(arrayLink):
             link=currentLink
             fake=random.randint(10**9, 10**10-1)
