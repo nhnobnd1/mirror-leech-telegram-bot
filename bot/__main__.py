@@ -20,11 +20,10 @@ from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, rss, shell, eval, delete, count, users_settings, search, bt_select, bot_settings
 from requests import utils as rutils, get as rget
-import json
+
 
 
 async def stats(client, message):
-    URL_MAGNET = environ.get('URL_MAGNET', '')
     if await aiopath.exists('.git'):
         last_commit = await cmd_exec("git log -1 --date=short --pretty=format:'%cd <b>From</b> %cr'", True)
         last_commit = last_commit[0]
@@ -33,8 +32,7 @@ async def stats(client, message):
     total, used, free, disk = disk_usage('/')
     swap = swap_memory()
     memory = virtual_memory()
-    totalApi = rget(f'{URL_MAGNET}total')
-    count = json.loads(totalApi.content)
+    
 
     stats = f'<b>Commit Date:</b> {last_commit}\n\n'\
             f'<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n'\
@@ -52,13 +50,8 @@ async def stats(client, message):
             f'<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n'\
             f'<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n'\
             f'<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n'\
-            f'<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n'\
-            f'<b>Today 0 J:</b> {count[0]}\n\n'\
-            f'<b>Today 1 J:</b> {count[2]}\n\n'\
-            f'<b>Today 2 J:</b> {count[4]}\n\n'\
-            f'<b>Today 0 F:</b> {count[1]}\n\n'\
-            f'<b>Today 1 F:</b> {count[3]}\n\n'\
-            f'<b>Today 2 F:</b> {count[5]}\n\n'
+            f'<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n'
+        
 
     await sendMessage(message, stats)
 
