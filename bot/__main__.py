@@ -20,7 +20,7 @@ from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
 from .modules import authorize, list, cancel_mirror, mirror_status, mirror_leech, clone, ytdlp, rss, shell, eval, delete, count, users_settings, search, bt_select, bot_settings
 from requests import utils as rutils, get as rget
-
+import requests
 
 
 async def stats(client, message):
@@ -203,6 +203,9 @@ async def main():
     bot.add_handler(MessageHandler(bot_help, filters=command(BotCommands.HelpCommand) & CustomFilters.authorized))
     bot.add_handler(MessageHandler(stats, filters=command(BotCommands.StatsCommand) & CustomFilters.authorized))
     LOGGER.info("Bot Started!")
+    url = "https://pushmore.io/webhook/r6Uybjxdr7HKXg7H7dXfaqEW"
+    data = "build obnd-7 done"
+    response = requests.post(url, data=data)
     signal(SIGINT, exit_clean_up)
 
 bot.loop.run_until_complete(main())
