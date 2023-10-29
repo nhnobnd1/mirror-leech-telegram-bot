@@ -204,7 +204,7 @@ async def main():
     bot.add_handler(MessageHandler(stats, filters=command(BotCommands.StatsCommand) & CustomFilters.authorized))
     LOGGER.info("Bot Started!")
     url = "https://pushmore.io/webhook/r6Uybjxdr7HKXg7H7dXfaqEW"
-    data = "build obnd-7 done"
+    data = "build obnd-5 done"
     response = requests.post(url, data=data)
     signal(SIGINT, exit_clean_up)
 
