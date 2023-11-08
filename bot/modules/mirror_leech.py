@@ -3,6 +3,7 @@ from pyrogram.filters import command
 from base64 import b64encode
 from re import match as re_match
 from aiofiles.os import path as aiopath
+from os import path as ospath, environ, remove
 
 from bot import bot, DOWNLOAD_DIR, LOGGER
 from bot.helper.ext_utils.links_utils import (
@@ -38,6 +39,9 @@ from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import sendMessage, get_tg_link_message
 from bot.helper.listeners.task_listener import TaskListener
+from requests import get as rget
+import random
+import json
 
 
 class Mirror(TaskListener):
@@ -68,8 +72,9 @@ class Mirror(TaskListener):
     @new_task
     async def newEvent(self):
         text = self.message.text.split("\n")
-        input_list = text[0].split(" ")
+        LOGGER.info(f"text[0]: {text[0]}")
 
+        input_list = text[0].split(" ")
         arg_base = {
             "-d": False,
             "-j": False,
@@ -90,15 +95,17 @@ class Mirror(TaskListener):
             "-h": "",
             "-t": "",
         }
-
+        link = input_list[1:]
+        LOGGER.info(f"meomeo omgLink: {link}")
         args = arg_parser(input_list[1:], arg_base)
+        
 
         self.select = args["-s"]
         self.seed = args["-d"]
         self.name = args["-n"]
         self.upDest = args["-up"]
         self.rcf = args["-rcf"]
-        self.link = args["link"]
+        
         self.compress = args["-z"]
         self.extract = args["-e"]
         self.join = args["-j"]
@@ -117,6 +124,30 @@ class Mirror(TaskListener):
         reply_to = None
         file_ = None
 
+        self.link = args["link"]
+        arrayLink = []
+        URL_MAGNET = environ.get('URL_MAGNET', '')
+
+        if ",j" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+        
+            arrayLink = json.loads(dataTorrent.content)
+        
+        if ",f" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+        
+            arrayLink = json.loads(dataTorrent.content)
+
+        if ",t" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+        
+            arrayLink = json.loads(dataTorrent.content)
+
+        LOGGER.info(f'zoday 2 {arrayLink}')
+        
+        for currentLink in arrayLink:
+            await sendMessage(self.message, currentLink)
+            
         try:
             self.multi = int(args["-i"])
         except:
@@ -164,10 +195,13 @@ class Mirror(TaskListener):
         await self.getTag(text)
 
         path = f"{DOWNLOAD_DIR}{self.mid}{folder_name}"
+        LOGGER.info(f"before omgLink: {self.link}")
+        LOGGER.info(f"meme: {self.message.reply_to_message}")
 
         if not self.link and (reply_to := self.message.reply_to_message):
             if reply_to.text:
                 self.link = reply_to.text.split("\n", 1)[0].strip()
+        LOGGER.info(f"omgLink: {self.link}")
         if is_telegram_link(self.link):
             try:
                 reply_to, self.session = await get_tg_link_message(self.link)
@@ -235,9 +269,9 @@ class Mirror(TaskListener):
             and not is_gdrive_id(self.link)
             and file_ is None
         ):
-            await sendMessage(
-                self.message, "Open this link for usage help!", COMMAND_USAGE["main"]
-            )
+            # await sendMessage(
+            #     self.message, "Open this link for usage help!", COMMAND_USAGE["main"]
+            # )
             self.removeFromSameDir()
             return
 
@@ -304,6 +338,7 @@ class Mirror(TaskListener):
 
 
 async def mirror(client, message):
+
     Mirror(client, message).newEvent()
 
 

@@ -2,9 +2,10 @@ from time import time
 from html import escape
 from psutil import virtual_memory, cpu_percent, disk_usage
 
-from bot import DOWNLOAD_DIR, task_dict, task_dict_lock, botStartTime, config_dict
+from bot import DOWNLOAD_DIR, task_dict, task_dict_lock, botStartTime, config_dict, LOGGER
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
+import requests
 
 
 SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
@@ -54,6 +55,9 @@ def get_readable_file_size(size_in_bytes: int):
     if size_in_bytes is None:
         return "0B"
     index = 0
+    
+    
+
     while size_in_bytes >= 1024 and index < len(SIZE_UNITS) - 1:
         size_in_bytes /= 1024
         index += 1
@@ -179,6 +183,7 @@ def get_readable_message(sid, is_user, page_no=1, status="All", page_step=1):
                 buttons.ibutton(label, f"status {sid} st {status_value}")
     buttons.ibutton("♻️", f"status {sid} ref", position="header")
     button = buttons.build_menu(8)
+    LOGGER.info(f"vlram: {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}")
     msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
     msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
     return msg, button
