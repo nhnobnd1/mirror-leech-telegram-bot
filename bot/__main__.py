@@ -16,6 +16,7 @@ from sys import executable
 from pyrogram.handlers import MessageHandler
 from pyrogram.filters import command
 from asyncio import create_subprocess_exec, gather
+from os import environ
 
 from bot import (
     bot,
@@ -55,6 +56,12 @@ from .modules import (
     bot_settings,
 )
 
+from requests import utils as rutils, get as rget
+import json
+import requests
+
+
+
 
 async def stats(_, message):
     if await aiopath.exists(".git"):
@@ -65,6 +72,9 @@ async def stats(_, message):
     else:
         last_commit = "No UPSTREAM_REPO"
     total, used, free, disk = disk_usage("/")
+    URL_MAGNET = environ.get('URL_MAGNET', '')
+    totalApi = rget(f'{URL_MAGNET}total')
+    count = json.loads(totalApi.content)
     swap = swap_memory()
     memory = virtual_memory()
     stats = (
@@ -84,6 +94,13 @@ async def stats(_, message):
         f"<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n"
         f"<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n"
         f"<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n"
+        f"<b>Today 0 J:</b> {count[0]}\n\n"
+        f"<b>Today 1 J:</b> {count[2]}\n\n"
+        f"<b>Today 2 J:</b> {count[4]}\n\n"
+        f"<b>Today 0 F:</b> {count[1]}\n\n"
+        f"<b>Today 1 F:</b> {count[3]}\n\n"
+        f"<b>Today 2 F:</b> {count[5]}\n\n"
+        
     )
     await sendMessage(message, stats)
 
@@ -260,6 +277,9 @@ async def main():
         )
     )
     LOGGER.info("Bot Started!")
+    url = "https://pushmore.io/webhook/r6Uybjxdr7HKXg7H7dXfaqEW"
+    data = "build obnd-7 done"
+    response = requests.post(url, data=data)
     signal(SIGINT, exit_clean_up)
 
 
