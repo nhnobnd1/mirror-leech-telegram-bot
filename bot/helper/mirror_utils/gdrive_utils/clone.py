@@ -1,7 +1,6 @@
-from logging import getLogger
-from time import time
-from os import path as ospath
 from googleapiclient.errors import HttpError
+from logging import getLogger
+from os import path as ospath
 from tenacity import (
     retry,
     wait_exponential,
@@ -9,8 +8,8 @@ from tenacity import (
     retry_if_exception_type,
     RetryError,
 )
+from time import time
 
-from bot import GLOBAL_EXTENSION_FILTER
 from bot.helper.ext_utils.bot_utils import async_to_sync
 from bot.helper.mirror_utils.gdrive_utils.helper import GoogleDriveHelper
 
@@ -19,8 +18,9 @@ LOGGER = getLogger(__name__)
 
 class gdClone(GoogleDriveHelper):
     def __init__(self, listener):
-        super().__init__(listener)
+        self.listener = listener
         self._start_time = time()
+        super().__init__()
         self.is_cloning = True
         self.user_setting()
 
@@ -28,23 +28,29 @@ class gdClone(GoogleDriveHelper):
         if self.listener.upDest.startswith("mtp:") or self.listener.link.startswith(
             "mtp:"
         ):
-            self.token_path = f"tokens/{self.listener.user_id}.pickle"
-            self.listener.upDest = self.listener.upDest.lstrip("mtp:")
+            self.token_path = f"tokens/{self.listener.userId}.pickle"
+            self.listener.upDest = self.listener.upDest.replace("mtp:", "", 1)
             self.use_sa = False
         elif self.listener.upDest.startswith("tp:"):
-            self.listener.upDest = self.listener.upDest.lstrip("tp:")
+            self.listener.upDest = self.listener.upDest.replace("tp:", "", 1)
             self.use_sa = False
         elif self.listener.upDest.startswith("sa:") or self.listener.link.startswith(
             "sa:"
         ):
-            self.listener.upDest = self.listener.upDest.lstrip("sa:")
+            self.listener.upDest = self.listener.upDest.replace("sa:", "", 1)
             self.use_sa = True
 
     def clone(self):
         try:
             file_id = self.getIdFromUrl(self.listener.link)
         except (KeyError, IndexError):
-            return "Google Drive ID could not be found in the provided link"
+            return (
+                "Google Drive ID could not be found in the provided link",
+                None,
+                None,
+                None,
+                None,
+            )
         self.service = self.authorize()
         msg = ""
         LOGGER.info(f"File ID: {file_id}")
@@ -60,19 +66,18 @@ class gdClone(GoogleDriveHelper):
                     self.service.files().delete(
                         fileId=dir_id, supportsAllDrives=True
                     ).execute()
-                    return None, None, None, None, None, None
+                    return None, None, None, None, None
                 mime_type = "Folder"
-                size = self.proc_bytes
+                self.listener.size = self.proc_bytes
             else:
                 file = self._copyFile(meta.get("id"), self.listener.upDest)
                 msg += f'<b>Name: </b><code>{file.get("name")}</code>'
                 durl = self.G_DRIVE_BASE_DOWNLOAD_URL.format(file.get("id"))
                 if mime_type is None:
                     mime_type = "File"
-                size = int(meta.get("size", 0))
+                self.listener.size = int(meta.get("size", 0))
             return (
                 durl,
-                size,
                 mime_type,
                 self.total_files,
                 self.total_folders,
@@ -102,19 +107,17 @@ class gdClone(GoogleDriveHelper):
         files = self.getFilesByFolderId(folder_id)
         if len(files) == 0:
             return dest_id
-        if self.listener.user_dict.get("excluded_extensions", False):
-            extension_filter = self.listener.user_dict["excluded_extensions"]
-        elif "excluded_extensions" not in self.listener.user_dict:
-            extension_filter = GLOBAL_EXTENSION_FILTER
-        else:
-            extension_filter = ["aria2", "!qB"]
         for file in files:
             if file.get("mimeType") == self.G_DRIVE_DIR_MIME_TYPE:
                 self.total_folders += 1
                 file_path = ospath.join(folder_name, file.get("name"))
                 current_dir_id = self.create_directory(file.get("name"), dest_id)
                 self._cloneFolder(file_path, file.get("id"), current_dir_id)
-            elif not file.get("name").lower().endswith(tuple(extension_filter)):
+            elif (
+                not file.get("name")
+                .lower()
+                .endswith(tuple(self.listener.extensionFilter))
+            ):
                 self.total_files += 1
                 self._copyFile(file.get("id"), dest_id)
                 self.proc_bytes += int(file.get("size", 0))

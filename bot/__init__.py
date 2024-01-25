@@ -1,18 +1,7 @@
-from tzlocal import get_localzone
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from pyrogram import Client as tgClient, enums
-from pymongo import MongoClient
+from aria2p import API as ariaAPI, Client as ariaClient
 from asyncio import Lock
 from dotenv import load_dotenv, dotenv_values
-from threading import Thread
-from time import sleep, time
-from subprocess import Popen, run as srun
-from os import remove as osremove, path as ospath, environ, getcwd
-from aria2p import API as ariaAPI, Client as ariaClient
-from qbittorrentapi import Client as qbClient
-
-# from faulthandler import enable as faulthandler_enable
-from socket import setdefaulttimeout
 from logging import (
     getLogger,
     FileHandler,
@@ -24,9 +13,19 @@ from logging import (
     warning as log_warning,
     ERROR,
 )
+from os import remove, path as ospath, environ, getcwd
+from pymongo import MongoClient
+from pyrogram import Client as tgClient, enums
+from qbittorrentapi import Client as qbClient
+from socket import setdefaulttimeout
+from subprocess import Popen, run
+from time import time
+from tzlocal import get_localzone
 from uvloop import install
 
+# from faulthandler import enable as faulthandler_enable
 # faulthandler_enable()
+
 install()
 setdefaulttimeout(600)
 
@@ -34,6 +33,7 @@ getLogger("qbittorrentapi").setLevel(INFO)
 getLogger("requests").setLevel(INFO)
 getLogger("urllib3").setLevel(INFO)
 getLogger("pyrogram").setLevel(ERROR)
+getLogger("httpx").setLevel(ERROR)
 
 botStartTime = time()
 
@@ -45,11 +45,13 @@ basicConfig(
 
 LOGGER = getLogger(__name__)
 
+aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
+
 load_dotenv("config.env", override=True)
 
-Interval = {}
-QbInterval = []
+Intervals = {"status": {}, "qb": "", "jd": ""}
 QbTorrents = {}
+jd_downloads = {}
 DRIVES_NAMES = []
 DRIVES_IDS = []
 INDEX_URLS = []
@@ -73,7 +75,9 @@ except:
 task_dict_lock = Lock()
 queue_dict_lock = Lock()
 qb_listener_lock = Lock()
+jd_lock = Lock()
 cpu_eater_lock = Lock()
+subprocess_lock = Lock()
 status_dict = {}
 task_dict = {}
 rss_dict = {}
@@ -116,6 +120,10 @@ if DATABASE_URL:
                     file_ = key.replace("__", ".")
                     with open(file_, "wb+") as f:
                         f.write(value)
+                    if file_ == "cfg.zip":
+                        run(["rm", "-rf", "/JDownloader/cfg"])
+                        run(["7z", "x", "cfg.zip", "-o/JDownloader"])
+                        remove("cfg.zip")
         if a2c_options := db.settings.aria2c.find_one({"_id": bot_id}):
             del a2c_options["_id"]
             aria2_options = a2c_options
@@ -200,20 +208,18 @@ if len(USER_SESSION_STRING) != 0:
         TELEGRAM_HASH,
         session_string=USER_SESSION_STRING,
         parse_mode=enums.ParseMode.HTML,
-        max_concurrent_transmissions=1000,
+        max_concurrent_transmissions=10,
     ).start()
     IS_PREMIUM_USER = user.me.is_premium
 else:
     IS_PREMIUM_USER = False
     user = ""
 
-MEGA_EMAIL = environ.get("MEGA_EMAIL", "")
-MEGA_PASSWORD = environ.get("MEGA_PASSWORD", "")
-if len(MEGA_EMAIL) == 0 or len(MEGA_PASSWORD) == 0:
-    log_warning("MEGA Credentials not provided!")
-    MEGA_EMAIL = ""
-    MEGA_PASSWORD = ""
-
+JD_EMAIL = environ.get("JD_EMAIL", "")
+JD_PASS = environ.get("JD_PASS", "")
+if len(JD_EMAIL) == 0 or len(JD_PASS) == 0:
+    JD_EMAIL = ""
+    JD_PASS = ""
 
 FILELION_API = environ.get("FILELION_API", "")
 if len(FILELION_API) == 0:
@@ -253,15 +259,9 @@ else:
 
 STATUS_UPDATE_INTERVAL = environ.get("STATUS_UPDATE_INTERVAL", "")
 if len(STATUS_UPDATE_INTERVAL) == 0:
-    STATUS_UPDATE_INTERVAL = 10
+    STATUS_UPDATE_INTERVAL = 15
 else:
     STATUS_UPDATE_INTERVAL = int(STATUS_UPDATE_INTERVAL)
-
-AUTO_DELETE_MESSAGE_DURATION = environ.get("AUTO_DELETE_MESSAGE_DURATION", "")
-if len(AUTO_DELETE_MESSAGE_DURATION) == 0:
-    AUTO_DELETE_MESSAGE_DURATION = 30
-else:
-    AUTO_DELETE_MESSAGE_DURATION = int(AUTO_DELETE_MESSAGE_DURATION)
 
 YT_DLP_OPTIONS = environ.get("YT_DLP_OPTIONS", "")
 if len(YT_DLP_OPTIONS) == 0:
@@ -343,7 +343,7 @@ UPSTREAM_BRANCH = environ.get("UPSTREAM_BRANCH", "")
 if len(UPSTREAM_BRANCH) == 0:
     UPSTREAM_BRANCH = "master"
 
-RCLONE_SERVE_URL = environ.get("RCLONE_SERVE_URL", "")
+RCLONE_SERVE_URL = environ.get("RCLONE_SERVE_URL", "").rstrip("/")
 if len(RCLONE_SERVE_URL) == 0:
     RCLONE_SERVE_URL = ""
 
@@ -361,7 +361,6 @@ if len(RCLONE_SERVE_PASS) == 0:
 config_dict = {
     "AS_DOCUMENT": AS_DOCUMENT,
     "AUTHORIZED_CHATS": AUTHORIZED_CHATS,
-    "AUTO_DELETE_MESSAGE_DURATION": AUTO_DELETE_MESSAGE_DURATION,
     "BASE_URL": BASE_URL,
     "BASE_URL_PORT": BASE_URL_PORT,
     "BOT_TOKEN": BOT_TOKEN,
@@ -376,12 +375,12 @@ config_dict = {
     "INCOMPLETE_TASK_NOTIFIER": INCOMPLETE_TASK_NOTIFIER,
     "INDEX_URL": INDEX_URL,
     "IS_TEAM_DRIVE": IS_TEAM_DRIVE,
+    "JD_EMAIL": JD_EMAIL,
+    "JD_PASS": JD_PASS,
     "LEECH_DUMP_CHAT": LEECH_DUMP_CHAT,
     "LEECH_FILENAME_PREFIX": LEECH_FILENAME_PREFIX,
     "LEECH_SPLIT_SIZE": LEECH_SPLIT_SIZE,
     "MEDIA_GROUP": MEDIA_GROUP,
-    "MEGA_EMAIL": MEGA_EMAIL,
-    "MEGA_PASSWORD": MEGA_PASSWORD,
     "OWNER_ID": OWNER_ID,
     "QUEUE_ALL": QUEUE_ALL,
     "QUEUE_DOWNLOAD": QUEUE_DOWNLOAD,
@@ -437,25 +436,22 @@ if BASE_URL:
         shell=True,
     )
 
-srun(["qbittorrent-nox", "-d", f"--profile={getcwd()}"])
+run(["qbittorrent-nox", "-d", f"--profile={getcwd()}"])
 if not ospath.exists(".netrc"):
     with open(".netrc", "w"):
         pass
-srun(["chmod", "600", ".netrc"])
-srun(["cp", ".netrc", "/root/.netrc"])
-srun(["chmod", "+x", "aria.sh"])
-srun("./aria.sh", shell=True)
+run(
+    "chmod 600 .netrc && cp .netrc /root/.netrc && chmod +x aria.sh && ./aria.sh",
+    shell=True,
+)
 if ospath.exists("accounts.zip"):
     if ospath.exists("accounts"):
-        srun(["rm", "-rf", "accounts"])
-    srun(["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"])
-    srun(["chmod", "-R", "777", "accounts"])
-    osremove("accounts.zip")
+        run(["rm", "-rf", "accounts"])
+    run(["7z", "x", "-o.", "-aoa", "accounts.zip", "accounts/*.json"])
+    run(["chmod", "-R", "777", "accounts"])
+    remove("accounts.zip")
 if not ospath.exists("accounts"):
     config_dict["USE_SERVICE_ACCOUNTS"] = False
-sleep(0.5)
-
-aria2 = ariaAPI(ariaClient(host="http://localhost", port=6800, secret=""))
 
 
 def get_client():
@@ -466,23 +462,6 @@ def get_client():
         REQUESTS_ARGS={"timeout": (30, 60)},
     )
 
-
-def aria2c_init():
-    try:
-        log_info("Initializing Aria2c")
-        link = "https://linuxmint.com/torrents/lmde-5-cinnamon-64bit.iso.torrent"
-        dire = DOWNLOAD_DIR.rstrip("/")
-        aria2.add_uris([link], {"dir": dire})
-        sleep(3)
-        downloads = aria2.get_downloads()
-        sleep(10)
-        aria2.remove(downloads, force=True, files=True, clean=True)
-    except Exception as e:
-        log_error(f"Aria2c initializing error: {e}")
-
-
-Thread(target=aria2c_init).start()
-sleep(1.5)
 
 aria2c_global = [
     "bt-max-open-files",
@@ -499,12 +478,6 @@ aria2c_global = [
     "save-cookies",
     "server-stat-of",
 ]
-
-if not aria2_options:
-    aria2_options = aria2.client.get_global_option()
-else:
-    a2c_glo = {op: aria2_options[op] for op in aria2c_global if op in aria2_options}
-    aria2.set_global_options(a2c_glo)
 
 qb_client = get_client()
 if not qbit_options:
@@ -528,8 +501,14 @@ bot = tgClient(
     bot_token=BOT_TOKEN,
     workers=1000,
     parse_mode=enums.ParseMode.HTML,
-    max_concurrent_transmissions=1000,
+    max_concurrent_transmissions=10,
 ).start()
 bot_loop = bot.loop
 
 scheduler = AsyncIOScheduler(timezone=str(get_localzone()), event_loop=bot_loop)
+
+if not aria2_options:
+    aria2_options = aria2.client.get_global_option()
+else:
+    a2c_glo = {op: aria2_options[op] for op in aria2c_global if op in aria2_options}
+    aria2.set_global_options(a2c_glo)

@@ -1,6 +1,6 @@
-from signal import signal, SIGINT
-from aiofiles.os import path as aiopath, remove as aioremove
 from aiofiles import open as aiopen
+from aiofiles.os import path as aiopath, remove
+from asyncio import gather, create_subprocess_exec
 from os import execl as osexecl
 from psutil import (
     disk_usage,
@@ -11,36 +11,42 @@ from psutil import (
     net_io_counters,
     boot_time,
 )
-from time import time
-from sys import executable
-from pyrogram.handlers import MessageHandler
 from pyrogram.filters import command
-from asyncio import create_subprocess_exec, gather
+from pyrogram.handlers import MessageHandler
+from signal import signal, SIGINT
+from sys import executable
+from time import time
 from os import environ
+from requests import utils as rutils, get as rget
+import json
+import requests
 
 from bot import (
     bot,
     botStartTime,
     LOGGER,
-    Interval,
+    Intervals,
     DATABASE_URL,
-    QbInterval,
     INCOMPLETE_TASK_NOTIFIER,
     scheduler,
 )
-from .helper.ext_utils.files_utils import start_cleanup, clean_all, exit_clean_up
-from .helper.ext_utils.bot_utils import cmd_exec, sync_to_async, initiate_help_messages
+from .helper.ext_utils.bot_utils import cmd_exec, sync_to_async, create_help_buttons
+from .helper.ext_utils.db_handler import DbManager
+from .helper.ext_utils.files_utils import clean_all, exit_clean_up
+from .helper.ext_utils.jdownloader_booter import jdownloader
 from .helper.ext_utils.status_utils import get_readable_file_size, get_readable_time
-from .helper.ext_utils.db_handler import DbManger
+from .helper.ext_utils.telegraph_helper import telegraph
+from .helper.listeners.aria2_listener import start_aria2_listener
+from .helper.mirror_utils.rclone_utils.serve import rclone_serve_booter
 from .helper.telegram_helper.bot_commands import BotCommands
-from .helper.telegram_helper.message_utils import sendMessage, editMessage, sendFile
-from .helper.telegram_helper.filters import CustomFilters
 from .helper.telegram_helper.button_build import ButtonMaker
-from bot.helper.listeners.aria2_listener import start_aria2_listener
+from .helper.telegram_helper.filters import CustomFilters
+from .helper.telegram_helper.message_utils import sendMessage, editMessage, sendFile
 from .modules import (
     authorize,
     cancel_task,
     clone,
+    exec,
     gd_count,
     gd_delete,
     gd_search,
@@ -51,16 +57,11 @@ from .modules import (
     ytdlp,
     rss,
     shell,
-    eval,
     users_settings,
     bot_settings,
+    help,
+    force_start,
 )
-
-from requests import utils as rutils, get as rget
-import json
-import requests
-
-
 
 
 async def stats(_, message):
@@ -75,6 +76,7 @@ async def stats(_, message):
     URL_MAGNET = environ.get('URL_MAGNET', '')
     totalApi = rget(f'{URL_MAGNET}total')
     count = json.loads(totalApi.content)
+
     swap = swap_memory()
     memory = virtual_memory()
     stats = (
@@ -100,7 +102,7 @@ async def stats(_, message):
         f"<b>Today 0 F:</b> {count[1]}\n\n"
         f"<b>Today 1 F:</b> {count[3]}\n\n"
         f"<b>Today 2 F:</b> {count[5]}\n\n"
-        
+
     )
     await sendMessage(message, stats)
 
@@ -128,14 +130,16 @@ async def restart(_, message):
     restart_message = await sendMessage(message, "Restarting...")
     if scheduler.running:
         scheduler.shutdown(wait=False)
-    if QbInterval:
-        QbInterval[0].cancel()
-    if Interval:
-        for intvl in list(Interval.values()):
+    if qb := Intervals["qb"]:
+        qb.cancel()
+    if jd := Intervals["jd"]:
+        jd.cancel()
+    if st := Intervals["status"]:
+        for intvl in list(st.values()):
             intvl.cancel()
     await sync_to_async(clean_all)
     proc1 = await create_subprocess_exec(
-        "pkill", "-9", "-f", "gunicorn|aria2c|qbittorrent-nox|ffmpeg|rclone"
+        "pkill", "-9", "-f", "gunicorn|aria2c|qbittorrent-nox|ffmpeg|rclone|java"
     )
     proc2 = await create_subprocess_exec("python3", "update.py")
     await gather(proc1.wait(), proc2.wait())
@@ -159,9 +163,11 @@ help_string = f"""
 NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to Google Drive.
 /{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to Google Drive using qBittorrent.
+/{BotCommands.JdMirrorCommand[0]} or /{BotCommands.JdMirrorCommand[1]}: Start Mirroring to Google Drive using JDownloader.
 /{BotCommands.YtdlCommand[0]} or /{BotCommands.YtdlCommand[1]}: Mirror yt-dlp supported link.
 /{BotCommands.LeechCommand[0]} or /{BotCommands.LeechCommand[1]}: Start leeching to Telegram.
 /{BotCommands.QbLeechCommand[0]} or /{BotCommands.QbLeechCommand[1]}: Start leeching using qBittorrent.
+/{BotCommands.JdLeechCommand[0]} or /{BotCommands.JdLeechCommand[1]}: Start leeching using qBittorrent.
 /{BotCommands.YtdlLeechCommand[0]} or /{BotCommands.YtdlLeechCommand[1]}: Leech yt-dlp supported link.
 /{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive.
 /{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.
@@ -169,7 +175,8 @@ NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.UserSetCommand} [query]: Users settings.
 /{BotCommands.BotSetCommand} [query]: Bot settings.
 /{BotCommands.BtSelectCommand}: Select files from torrents by gid or reply.
-/{BotCommands.CancelTaskCommand}: Cancel task by gid or reply.
+/{BotCommands.CancelTaskCommand[0]} or /{BotCommands.CancelTaskCommand[1]} [gid]: Cancel task by gid or reply.
+/{BotCommands.ForceStartCommand[0]} or /{BotCommands.ForceStartCommand[1]} [gid]: Force start task by gid or reply.
 /{BotCommands.CancelAllCommand} [query]: Cancel all [status] tasks.
 /{BotCommands.ListCommand} [query]: Search in Google Drive(s).
 /{BotCommands.SearchCommand} [query]: Search for torrents with API.
@@ -184,9 +191,9 @@ NOTE: Try each command without any argument to see more detalis.
 /{BotCommands.RestartCommand}: Restart and update the bot (Only Owner & Sudo).
 /{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports (Only Owner & Sudo).
 /{BotCommands.ShellCommand}: Run shell commands (Only Owner).
-/{BotCommands.EvalCommand}: Run Python Code Line | Lines (Only Owner).
-/{BotCommands.ExecCommand}: Run Commands In Exec (Only Owner).
-/{BotCommands.ClearLocalsCommand}: Clear {BotCommands.EvalCommand} or {BotCommands.ExecCommand} locals (Only Owner).
+/{BotCommands.AExecCommand}: Exec async functions (Only Owner).
+/{BotCommands.ExecCommand}: Exec sync functions (Only Owner).
+/{BotCommands.ClearLocalsCommand}: Clear {BotCommands.AExecCommand} or {BotCommands.ExecCommand} locals (Only Owner).
 /{BotCommands.RssCommand}: RSS Menu.
 """
 
@@ -208,7 +215,7 @@ async def restart_notification():
                 await bot.edit_message_text(
                     chat_id=chat_id, message_id=msg_id, text=msg
                 )
-                await aioremove(".restartmsg")
+                await remove(".restartmsg")
             else:
                 await bot.send_message(
                     chat_id=cid,
@@ -220,7 +227,7 @@ async def restart_notification():
             LOGGER.error(e)
 
     if INCOMPLETE_TASK_NOTIFIER and DATABASE_URL:
-        if notifier_dict := await DbManger().get_incomplete_tasks():
+        if notifier_dict := await DbManager().get_incomplete_tasks():
             for cid, data in notifier_dict.items():
                 msg = "Restarted Successfully!" if cid == chat_id else "Bot Restarted!"
                 for tag, links in data.items():
@@ -240,14 +247,20 @@ async def restart_notification():
             )
         except:
             pass
-        await aioremove(".restartmsg")
+        await remove(".restartmsg")
 
 
 async def main():
+    jdownloader.initiate()
     await gather(
-        start_cleanup(), torrent_search.initiate_search_tools(), restart_notification(), initiate_help_messages()
+        sync_to_async(clean_all),
+        torrent_search.initiate_search_tools(),
+        restart_notification(),
+        telegraph.create_account(),
+        rclone_serve_booter(),
+        sync_to_async(start_aria2_listener, wait=False),
     )
-    await sync_to_async(start_aria2_listener, wait=False)
+    create_help_buttons()
 
     bot.add_handler(MessageHandler(start, filters=command(BotCommands.StartCommand)))
     bot.add_handler(
@@ -277,9 +290,6 @@ async def main():
         )
     )
     LOGGER.info("Bot Started!")
-    url = "https://pushmore.io/webhook/r6Uybjxdr7HKXg7H7dXfaqEW"
-    data = "build obnd-5 done"
-    response = requests.post(url, data=data)
     signal(SIGINT, exit_clean_up)
 
 

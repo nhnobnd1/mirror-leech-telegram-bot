@@ -1,12 +1,12 @@
-from bot import LOGGER
+from bot import LOGGER, subprocess_lock
 from bot.helper.ext_utils.status_utils import get_readable_file_size, MirrorStatus
 
 
 class SplitStatus:
-    def __init__(self, listener, size, gid):
-        self._gid = gid
-        self._size = size
+    def __init__(self, listener, gid):
         self.listener = listener
+        self._gid = gid
+        self._size = self.listener.size
 
     def gid(self):
         return self._gid
@@ -37,8 +37,11 @@ class SplitStatus:
 
     async def cancel_task(self):
         LOGGER.info(f"Cancelling Split: {self.listener.name}")
-        if self.listener.suproc is not None:
-            self.listener.suproc.kill()
-        else:
-            self.listener.suproc = "cancelled"
+        self.listener.cancelled = True
+        async with subprocess_lock:
+            if (
+                self.listener.suproc is not None
+                and self.listener.suproc.returncode is None
+            ):
+                self.listener.suproc.kill()
         await self.listener.onUploadError("splitting stopped by user!")

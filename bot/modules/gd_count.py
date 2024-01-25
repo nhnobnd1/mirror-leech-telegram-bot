@@ -1,20 +1,21 @@
-from pyrogram.handlers import MessageHandler
 from pyrogram.filters import command
+from pyrogram.handlers import MessageHandler
 
 from bot import bot
-from bot.helper.mirror_utils.gdrive_utils.count import gdCount
-from bot.helper.telegram_helper.message_utils import deleteMessage, sendMessage
-from bot.helper.telegram_helper.filters import CustomFilters
-from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.ext_utils.bot_utils import sync_to_async, new_task
 from bot.helper.ext_utils.links_utils import is_gdrive_link
 from bot.helper.ext_utils.status_utils import get_readable_file_size
+from bot.helper.mirror_utils.gdrive_utils.count import gdCount
+from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.telegram_helper.message_utils import deleteMessage, sendMessage
 
 
 @new_task
 async def countNode(_, message):
     args = message.text.split()
-    if username := message.from_user.username:
+    user = message.from_user or message.sender_chat
+    if username := user.username:
         tag = f"@{username}"
     else:
         tag = message.from_user.mention
@@ -26,7 +27,7 @@ async def countNode(_, message):
     if is_gdrive_link(link):
         msg = await sendMessage(message, f"Counting: <code>{link}</code>")
         name, mime_type, size, files, folders = await sync_to_async(
-            gdCount().count, link, message.from_user.id
+            gdCount().count, link, user.id
         )
         if mime_type is None:
             await sendMessage(message, name)

@@ -1,23 +1,18 @@
+from aiohttp import ClientSession
 from asyncio import (
     create_subprocess_exec,
     create_subprocess_shell,
     run_coroutine_threadsafe,
     sleep,
-    gather,
 )
 from asyncio.subprocess import PIPE
-from functools import partial, wraps
 from concurrent.futures import ThreadPoolExecutor
-from aiohttp import ClientSession
+from functools import partial, wraps
 
 from bot import user_data, config_dict, bot_loop
-from bot.helper.telegram_helper.button_build import ButtonMaker
+from bot.helper.ext_utils.help_messages import YT_HELP_DICT, MIRROR_HELP_DICT
 from bot.helper.ext_utils.telegraph_helper import telegraph
-from bot.helper.ext_utils.help_messages import (
-    MIRROR_HELP_MESSAGE,
-    YT_HELP_MESSAGE,
-    CLONE_HELP_MESSAGE,
-)
+from bot.helper.telegram_helper.button_build import ButtonMaker
 
 THREADPOOL = ThreadPoolExecutor(max_workers=1000)
 
@@ -39,6 +34,19 @@ class setInterval:
         self.task.cancel()
 
 
+def create_help_buttons():
+    buttons = ButtonMaker()
+    for name in list(MIRROR_HELP_DICT.keys())[1:]:
+        buttons.ibutton(name, f"help m {name}")
+    buttons.ibutton("Close", "help close")
+    COMMAND_USAGE["mirror"] = [MIRROR_HELP_DICT["main"], buttons.build_menu(3)]
+    buttons.reset()
+    for name in list(YT_HELP_DICT.keys())[1:]:
+        buttons.ibutton(name, f"help yt {name}")
+    buttons.ibutton("Close", "help close")
+    COMMAND_USAGE["yt"] = [YT_HELP_DICT["main"], buttons.build_menu(3)]
+
+
 def bt_selection_buttons(id_):
     gid = id_[:12] if len(id_) > 20 else id_
     pincode = "".join([n for n in id_ if n.isdigit()][:4])
@@ -54,29 +62,6 @@ def bt_selection_buttons(id_):
     buttons.ibutton("Done Selecting", f"btsel done {gid} {id_}")
     buttons.ibutton("Cancel", f"btsel cancel {gid}")
     return buttons.build_menu(2)
-
-
-async def initiate_help_messages():
-    mirror, yt, clone = await gather(
-        telegraph.create_page(
-            title="Mirror-Leech Command Usage", content=MIRROR_HELP_MESSAGE
-        ),
-        telegraph.create_page(
-            title="YTDLP Command Usage", content=YT_HELP_MESSAGE
-        ),
-        telegraph.create_page(
-            title="Clone Command Usage", content=CLONE_HELP_MESSAGE
-        ),
-    )
-    buttons = ButtonMaker()
-    buttons.ubutton("Usage Guide", f"https://telegra.ph/{mirror['path']}")
-    COMMAND_USAGE["main"] = buttons.build_menu(1)
-    buttons.reset()
-    buttons.ubutton("Usage Guide", f"https://telegra.ph/{yt['path']}")
-    COMMAND_USAGE["yt"] = buttons.build_menu(1)
-    buttons.reset()
-    buttons.ubutton("Usage Guide", f"https://telegra.ph/{clone['path']}")
-    COMMAND_USAGE["clone"] = buttons.build_menu(1)
 
 
 async def get_telegraph_list(telegraph_content):
@@ -98,7 +83,20 @@ async def get_telegraph_list(telegraph_content):
 def arg_parser(items, arg_base):
     if not items:
         return arg_base
-    bool_arg_set = {"-b", "-e", "-z", "-s", "-j", "-d", "-sv"}
+    bool_arg_set = {
+        "-b",
+        "-e",
+        "-z",
+        "-s",
+        "-j",
+        "-d",
+        "-sv",
+        "-ss",
+        "-f",
+        "-fd",
+        "-fu",
+        "-sync",
+    }
     t = len(items)
     i = 0
     arg_start = -1
@@ -108,7 +106,11 @@ def arg_parser(items, arg_base):
         if part in arg_base:
             if arg_start == -1:
                 arg_start = i
-            if i + 1 == t and part in bool_arg_set or part in ["-s", "-j"]:
+            if (
+                i + 1 == t
+                and part in bool_arg_set
+                or part in ["-s", "-j", "-f", "-fd", "-fu", "-sync"]
+            ):
                 arg_base[part] = True
             else:
                 sub_list = []
@@ -134,10 +136,23 @@ def arg_parser(items, arg_base):
     return arg_base
 
 
+def getSizeBytes(size):
+    size = size.lower()
+    if size.endswith("mb"):
+        size = size.split("mb")[0]
+        size = int(float(size) * 1048576)
+    elif size.endswith("gb"):
+        size = size.split("gb")[0]
+        size = int(float(size) * 1073741824)
+    else:
+        size = 0
+    return size
+
+
 async def get_content_type(url):
     try:
-        async with ClientSession(trust_env=True) as session:
-            async with session.get(url, verify_ssl=False) as response:
+        async with ClientSession() as session:
+            async with session.get(url, allow_redirects=True, ssl=False) as response:
                 return response.headers.get("Content-Type")
     except:
         return None
@@ -146,6 +161,14 @@ async def get_content_type(url):
 def update_user_ldata(id_, key, value):
     user_data.setdefault(id_, {})
     user_data[id_][key] = value
+
+
+async def retry_function(func, *args, **kwargs):
+    try:
+        return await sync_to_async(func, *args, **kwargs)
+    except:
+        await sleep(0.3)
+        return await retry_function(func, *args, **kwargs)
 
 
 async def cmd_exec(cmd, shell=False):

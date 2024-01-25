@@ -1,8 +1,8 @@
-from logging import getLogger
-from os import makedirs, path as ospath
-from io import FileIO
 from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaIoBaseDownload
+from io import FileIO
+from logging import getLogger
+from os import makedirs, path as ospath
 from tenacity import (
     retry,
     wait_exponential,
@@ -11,9 +11,8 @@ from tenacity import (
     RetryError,
 )
 
-from bot import GLOBAL_EXTENSION_FILTER
-from bot.helper.ext_utils.bot_utils import setInterval
 from bot.helper.ext_utils.bot_utils import async_to_sync
+from bot.helper.ext_utils.bot_utils import setInterval
 from bot.helper.mirror_utils.gdrive_utils.helper import GoogleDriveHelper
 
 LOGGER = getLogger(__name__)
@@ -21,13 +20,14 @@ LOGGER = getLogger(__name__)
 
 class gdDownload(GoogleDriveHelper):
     def __init__(self, listener, path):
-        super().__init__(listener)
+        self.listener = listener
         self._updater = None
         self._path = path
+        super().__init__()
         self.is_downloading = True
 
     def download(self):
-        file_id = self.getIdFromUrl(self.listener.link, self.listener.user_id)
+        file_id = self.getIdFromUrl(self.listener.link, self.listener.userId)
         self.service = self.authorize()
         self._updater = setInterval(self.update_interval, self.progress)
         try:
@@ -70,12 +70,6 @@ class gdDownload(GoogleDriveHelper):
         result = self.getFilesByFolderId(folder_id)
         if len(result) == 0:
             return
-        if self.listener.user_dict.get("excluded_extensions", False):
-            extension_filter = self.listener.user_dict["excluded_extensions"]
-        elif "excluded_extensions" not in self.listener.user_dict:
-            extension_filter = GLOBAL_EXTENSION_FILTER
-        else:
-            extension_filter = ["aria2", "!qB"]
         result = sorted(result, key=lambda k: k["name"])
         for item in result:
             file_id = item["id"]
@@ -90,7 +84,7 @@ class gdDownload(GoogleDriveHelper):
                 self._download_folder(file_id, path, filename)
             elif not ospath.isfile(
                 f"{path}{filename}"
-            ) and not filename.lower().endswith(tuple(extension_filter)):
+            ) and not filename.lower().endswith(tuple(self.listener.extensionFilter)):
                 self._download_file(file_id, path, filename, mime_type)
             if self.is_cancelled:
                 break
@@ -111,7 +105,7 @@ class gdDownload(GoogleDriveHelper):
         if self.is_cancelled:
             return
         fh = FileIO(f"{path}/{filename}", "wb")
-        downloader = MediaIoBaseDownload(fh, request, chunksize=100 * 1024 * 1024)
+        downloader = MediaIoBaseDownload(fh, request, chunksize=50 * 1024 * 1024)
         done = False
         retries = 0
         while not done:
@@ -121,7 +115,7 @@ class gdDownload(GoogleDriveHelper):
             try:
                 self.status, done = downloader.next_chunk()
             except HttpError as err:
-                if err.resp.status in [500, 502, 503, 504] and retries < 10:
+                if err.resp.status in [500, 502, 503, 504, 429] and retries < 10:
                     retries += 1
                     continue
                 if err.resp.get("content-type", "").startswith("application/json"):

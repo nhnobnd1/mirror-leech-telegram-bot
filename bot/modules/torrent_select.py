@@ -1,8 +1,19 @@
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
+from aiofiles.os import remove, path as aiopath
 from pyrogram.filters import command, regex
-from aiofiles.os import remove as aioremove, path as aiopath
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 
-from bot import bot, aria2, task_dict, task_dict_lock, OWNER_ID, user_data, LOGGER
+from bot import (
+    bot,
+    aria2,
+    task_dict,
+    task_dict_lock,
+    OWNER_ID,
+    user_data,
+    LOGGER,
+    config_dict,
+)
+from bot.helper.ext_utils.bot_utils import bt_selection_buttons, sync_to_async
+from bot.helper.ext_utils.status_utils import getTaskByGid, MirrorStatus
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
@@ -10,11 +21,12 @@ from bot.helper.telegram_helper.message_utils import (
     sendStatusMessage,
     deleteMessage,
 )
-from bot.helper.ext_utils.bot_utils import bt_selection_buttons, sync_to_async
-from bot.helper.ext_utils.status_utils import getTaskByGid, MirrorStatus
 
 
 async def select(_, message):
+    if not config_dict["BASE_URL"]:
+        await sendMessage(message, "Base URL not defined!")
+        return
     user_id = message.from_user.id
     msg = message.text.split()
     if len(msg) > 1:
@@ -40,12 +52,12 @@ async def select(_, message):
 
     if (
         OWNER_ID != user_id
-        and task.listener.user_id != user_id
+        and task.listener.userId != user_id
         and (user_id not in user_data or not user_data[user_id].get("is_sudo"))
     ):
         await sendMessage(message, "This task is not for you!")
         return
-    if task.status() not in [
+    if await sync_to_async(task.status) not in [
         MirrorStatus.STATUS_DOWNLOADING,
         MirrorStatus.STATUS_PAUSED,
         MirrorStatus.STATUS_QUEUEDL,
@@ -92,51 +104,46 @@ async def get_confirm(_, query):
         await query.answer("This task has been cancelled!", show_alert=True)
         await deleteMessage(message)
         return
-    if not hasattr(task, "seeding"):
-        await query.answer(
-            "Not in download state anymore! Keep this message to resume the seed if seed enabled!",
-            show_alert=True,
-        )
-        return
-    if user_id != task.listener.user_id:
+    if user_id != task.listener.userId:
         await query.answer("This task is not for you!", show_alert=True)
     elif data[1] == "pin":
         await query.answer(data[3], show_alert=True)
     elif data[1] == "done":
         await query.answer()
-        id_ = data[3]
-        if len(id_) > 20:
-            tor_info = (
-                await sync_to_async(task.client.torrents_info, torrent_hash=id_)
-            )[0]
-            path = tor_info.content_path.rsplit("/", 1)[0]
-            res = await sync_to_async(task.client.torrents_files, torrent_hash=id_)
-            for f in res:
-                if f.priority == 0:
-                    f_paths = [f"{path}/{f.name}", f"{path}/{f.name}.!qB"]
-                    for f_path in f_paths:
-                        if await aiopath.exists(f_path):
-                            try:
-                                await aioremove(f_path)
-                            except:
-                                pass
-            if not task.queued:
-                await sync_to_async(task.client.torrents_resume, torrent_hashes=id_)
-        else:
-            res = await sync_to_async(aria2.client.get_files, id_)
-            for f in res:
-                if f["selected"] == "false" and await aiopath.exists(f["path"]):
+        if hasattr(task, "seeding"):
+            id_ = data[3]
+            if len(id_) > 20:
+                tor_info = (
+                    await sync_to_async(task.client.torrents_info, torrent_hash=id_)
+                )[0]
+                path = tor_info.content_path.rsplit("/", 1)[0]
+                res = await sync_to_async(task.client.torrents_files, torrent_hash=id_)
+                for f in res:
+                    if f.priority == 0:
+                        f_paths = [f"{path}/{f.name}", f"{path}/{f.name}.!qB"]
+                        for f_path in f_paths:
+                            if await aiopath.exists(f_path):
+                                try:
+                                    await remove(f_path)
+                                except:
+                                    pass
+                if not task.queued:
+                    await sync_to_async(task.client.torrents_resume, torrent_hashes=id_)
+            else:
+                res = await sync_to_async(aria2.client.get_files, id_)
+                for f in res:
+                    if f["selected"] == "false" and await aiopath.exists(f["path"]):
+                        try:
+                            await remove(f["path"])
+                        except:
+                            pass
+                if not task.queued:
                     try:
-                        await aioremove(f["path"])
-                    except:
-                        pass
-            if not task.queued:
-                try:
-                    await sync_to_async(aria2.client.unpause, id_)
-                except Exception as e:
-                    LOGGER.error(
-                        f"{e} Error in resume, this mostly happens after abuse aria2. Try to use select cmd again!"
-                    )
+                        await sync_to_async(aria2.client.unpause, id_)
+                    except Exception as e:
+                        LOGGER.error(
+                            f"{e} Error in resume, this mostly happens after abuse aria2. Try to use select cmd again!"
+                        )
         await sendStatusMessage(message)
         await deleteMessage(message)
     else:

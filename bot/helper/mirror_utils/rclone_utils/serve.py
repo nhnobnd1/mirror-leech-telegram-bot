@@ -1,9 +1,9 @@
-from asyncio import create_subprocess_exec
-from aiofiles.os import path as aiopath
 from aiofiles import open as aiopen
+from aiofiles.os import path as aiopath
+from asyncio import create_subprocess_exec
 from configparser import ConfigParser
 
-from bot import config_dict, bot_loop
+from bot import config_dict
 
 RcloneServe = []
 
@@ -57,6 +57,3 @@ async def rclone_serve_booter():
         cmd.extend(("--user", user, "--pass", pswd))
     rcs = await create_subprocess_exec(*cmd)
     RcloneServe.append(rcs)
-
-
-bot_loop.run_until_complete(rclone_serve_booter())

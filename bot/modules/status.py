@@ -1,6 +1,6 @@
-from pyrogram.handlers import MessageHandler, CallbackQueryHandler
-from pyrogram.filters import command, regex
 from psutil import cpu_percent, virtual_memory, disk_usage
+from pyrogram.filters import command, regex
+from pyrogram.handlers import MessageHandler, CallbackQueryHandler
 from time import time
 
 from bot import (
@@ -9,25 +9,24 @@ from bot import (
     task_dict,
     botStartTime,
     DOWNLOAD_DIR,
-    Interval,
+    Intervals,
     bot,
-    LOGGER
 )
-from bot.helper.telegram_helper.filters import CustomFilters
+from bot.helper.ext_utils.bot_utils import new_task, sync_to_async
+from bot.helper.ext_utils.status_utils import (
+    MirrorStatus,
+    get_readable_file_size,
+    get_readable_time,
+    speed_string_to_bytes,
+)
 from bot.helper.telegram_helper.bot_commands import BotCommands
+from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
     sendMessage,
     deleteMessage,
     auto_delete_message,
     sendStatusMessage,
     update_status_message,
-)
-from bot.helper.ext_utils.bot_utils import new_task
-from bot.helper.ext_utils.status_utils import (
-    MirrorStatus,
-    get_readable_file_size,
-    get_readable_time,
-    speed_string_to_bytes,
 )
 
 
@@ -38,9 +37,7 @@ async def mirror_status(_, message):
     if count == 0:
         currentTime = get_readable_time(time() - botStartTime)
         free = get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)
-        msg = "No Active Tasks!\n___________________________"
-        LOGGER.info(f"vlram: {free}")
-
+        msg = f"No Active Tasks!\nEach user can get status for his tasks by adding me or user_id after cmd: /{BotCommands.StatusCommand} me"
         msg += (
             f"\n<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {free}"
             f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {currentTime}"
@@ -54,9 +51,9 @@ async def mirror_status(_, message):
         else:
             user_id = 0
             sid = message.chat.id
-            if obj := Interval.get(sid):
+            if obj := Intervals["status"].get(sid):
                 obj.cancel()
-                del Interval[sid]
+                del Intervals["status"][sid]
         await sendStatusMessage(message, user_id)
         await deleteMessage(message)
 
@@ -97,42 +94,48 @@ async def status_pages(_, query):
             "Clone": 0,
             "CheckUp": 0,
             "Pause": 0,
+            "SamVid": 0,
         }
         dl_speed = 0
         up_speed = 0
         seed_speed = 0
         async with task_dict_lock:
             for download in task_dict.values():
-                tstatus = download.status()
-                if tstatus == MirrorStatus.STATUS_DOWNLOADING:
-                    tasks["Download"] += 1
-                    dl_speed += speed_string_to_bytes(download.speed())
-                elif tstatus == MirrorStatus.STATUS_UPLOADING:
-                    tasks["Upload"] += 1
-                    up_speed += speed_string_to_bytes(download.speed())
-                elif tstatus == MirrorStatus.STATUS_SEEDING:
-                    tasks["Seed"] += 1
-                    seed_speed += speed_string_to_bytes(download.seed_speed())
-                elif tstatus == MirrorStatus.STATUS_ARCHIVING:
-                    tasks["Archive"] += 1
-                elif tstatus == MirrorStatus.STATUS_EXTRACTING:
-                    tasks["Extract"] += 1
-                elif tstatus == MirrorStatus.STATUS_SPLITTING:
-                    tasks["Split"] += 1
-                elif tstatus == MirrorStatus.STATUS_QUEUEDL:
-                    tasks["QueueDl"] += 1
-                elif tstatus == MirrorStatus.STATUS_QUEUEUP:
-                    tasks["QueueUp"] += 1
-                elif tstatus == MirrorStatus.STATUS_CLONING:
-                    tasks["Clone"] += 1
-                elif tstatus == MirrorStatus.STATUS_CHECKING:
-                    tasks["CheckUp"] += 1
-                elif tstatus == MirrorStatus.STATUS_PAUSED:
-                    tasks["Pause"] += 1
+                match await sync_to_async(download.status):
+                    case MirrorStatus.STATUS_DOWNLOADING:
+                        tasks["Download"] += 1
+                        dl_speed += speed_string_to_bytes(download.speed())
+                    case MirrorStatus.STATUS_UPLOADING:
+                        tasks["Upload"] += 1
+                        up_speed += speed_string_to_bytes(download.speed())
+                    case MirrorStatus.STATUS_SEEDING:
+                        tasks["Seed"] += 1
+                        seed_speed += speed_string_to_bytes(download.seed_speed())
+                    case MirrorStatus.STATUS_ARCHIVING:
+                        tasks["Archive"] += 1
+                    case MirrorStatus.STATUS_EXTRACTING:
+                        tasks["Extract"] += 1
+                    case MirrorStatus.STATUS_SPLITTING:
+                        tasks["Split"] += 1
+                    case MirrorStatus.STATUS_QUEUEDL:
+                        tasks["QueueDl"] += 1
+                    case MirrorStatus.STATUS_QUEUEUP:
+                        tasks["QueueUp"] += 1
+                    case MirrorStatus.STATUS_CLONING:
+                        tasks["Clone"] += 1
+                    case MirrorStatus.STATUS_CHECKING:
+                        tasks["CheckUp"] += 1
+                    case MirrorStatus.STATUS_PAUSED:
+                        tasks["Pause"] += 1
+                    case MirrorStatus.STATUS_SAMVID:
+                        tasks["SamVid"] += 1
+                    case _:
+                        tasks["Download"] += 1
+                        dl_speed += speed_string_to_bytes(download.speed())
 
         msg = f"""DL: {tasks['Download']} | UP: {tasks['Upload']} | SD: {tasks['Seed']} | AR: {tasks['Archive']}
 EX: {tasks['Extract']} | SP: {tasks['Split']} | QD: {tasks['QueueDl']} | QU: {tasks['QueueUp']}
-CL: {tasks['Clone']} | CH: {tasks['CheckUp']} | PA:{tasks['Pause']}
+CL: {tasks['Clone']} | CH: {tasks['CheckUp']} | PA: {tasks['Pause']} | SV: {tasks['SamVid']}
 
 ODLS: {get_readable_file_size(dl_speed)}/s
 OULS: {get_readable_file_size(up_speed)}/s

@@ -1,8 +1,8 @@
 from time import time
 
 from bot import aria2, LOGGER
-from bot.helper.ext_utils.status_utils import MirrorStatus, get_readable_time
 from bot.helper.ext_utils.bot_utils import sync_to_async
+from bot.helper.ext_utils.status_utils import MirrorStatus, get_readable_time
 
 
 def get_download(gid, old_info=None):
@@ -16,7 +16,7 @@ def get_download(gid, old_info=None):
 class Aria2Status:
     def __init__(self, listener, gid, seeding=False, queued=False):
         self._gid = gid
-        self._download = get_download(gid)
+        self._download = None
         self.listener = listener
         self.queued = queued
         self.start_time = 0
@@ -73,7 +73,6 @@ class Aria2Status:
         return self._download.upload_length_string()
 
     def seed_speed(self):
-        self._update()
         return self._download.upload_speed_string()
 
     def ratio(self):
@@ -90,7 +89,6 @@ class Aria2Status:
         return self._gid
 
     async def cancel_task(self):
-        self._update()
         await sync_to_async(self._update)
         if self._download.seeder and self.seeding:
             LOGGER.info(f"Cancelling Seed: {self.name()}")

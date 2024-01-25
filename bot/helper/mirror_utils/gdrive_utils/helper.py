@@ -1,17 +1,17 @@
-from logging import getLogger, ERROR
-from pickle import load as pload
-from os import path as ospath, listdir
-from re import search as re_search
-from urllib.parse import parse_qs, urlparse
-from random import randrange
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
+from logging import getLogger, ERROR
+from os import path as ospath, listdir
+from pickle import load as pload
+from random import randrange
+from re import search as re_search
 from tenacity import (
     retry,
     wait_exponential,
     stop_after_attempt,
     retry_if_exception_type,
 )
+from urllib.parse import parse_qs, urlparse
 
 from bot import config_dict
 from bot.helper.ext_utils.links_utils import is_gdrive_id
@@ -21,7 +21,7 @@ getLogger("googleapiclient.discovery").setLevel(ERROR)
 
 
 class GoogleDriveHelper:
-    def __init__(self, listener=None):
+    def __init__(self):
         self._OAUTH_SCOPE = ["https://www.googleapis.com/auth/drive"]
         self.token_path = "token.pickle"
         self.G_DRIVE_DIR_MIME_TYPE = "application/vnd.google-apps.folder"
@@ -37,7 +37,6 @@ class GoogleDriveHelper:
         self.sa_count = 1
         self.sa_number = 100
         self.alt_auth = False
-        self.listener = listener
         self.service = None
         self.total_files = 0
         self.total_folders = 0
@@ -100,11 +99,13 @@ class GoogleDriveHelper:
         if user_id and link.startswith("mtp:"):
             self.use_sa = False
             self.token_path = f"tokens/{user_id}.pickle"
+            link = link.replace("mtp:", "", 1)
         elif link.startswith("sa:"):
             self.use_sa = True
+            link = link.replace("sa:", "", 1)
         elif link.startswith("tp:"):
             self.use_sa = False
-        link = link.lstrip("mtp:").lstrip("sa:").lstrip("tp:")
+            link = link.replace("tp:", "", 1)
         if is_gdrive_id(link):
             return link
         if "folders" in link or "file" in link:

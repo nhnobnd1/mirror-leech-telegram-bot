@@ -1,8 +1,8 @@
-from aiofiles.os import path as aiopath, makedirs
 from aiofiles import open as aiopen
+from aiofiles.os import path as aiopath, makedirs
+from dotenv import dotenv_values
 from motor.motor_asyncio import AsyncIOMotorClient
 from pymongo.errors import PyMongoError
-from dotenv import dotenv_values
 
 from bot import (
     DATABASE_URL,
@@ -17,7 +17,7 @@ from bot import (
 )
 
 
-class DbManger:
+class DbManager:
     def __init__(self):
         self._err = False
         self._db = None
@@ -136,7 +136,7 @@ class DbManger:
                 pf_bin = await pf.read()
         else:
             pf_bin = ""
-        path = path.replace(".", "_")
+        path = path.replace(".", "__")
         await self._db.settings.files.update_one(
             {"_id": bot_id}, {"$set": {path: pf_bin}}, upsert=True
         )
@@ -148,7 +148,7 @@ class DbManger:
     async def update_user_data(self, user_id):
         if self._err:
             return
-        data = user_data[user_id]
+        data = user_data.get(user_id, {})
         if data.get("thumb"):
             del data["thumb"]
         if data.get("rclone_config"):
@@ -233,4 +233,4 @@ class DbManger:
 
 
 if DATABASE_URL:
-    bot_loop.run_until_complete(DbManger().db_load())
+    bot_loop.run_until_complete(DbManager().db_load())
