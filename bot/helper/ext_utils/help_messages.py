@@ -18,6 +18,9 @@ yt = """<b>Send link along with command line</b>:
 Check here all supported <a href='https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md'>SITES</a>
 Check all yt-dlp api options from this <a href='https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py#L184'>FILE</a> or use this <a href='https://t.me/mltb_official_channel/177'>script</a> to convert cli arguments to api options."""
 
+clone = """Send Gdrive|Gdot|Filepress|Filebee|Appdrive|Gdflix link or rclone path along with command or by replying to the link/rc_path by command.
+Use -sync to use sync method in rclone. Example: /cmd rcl/rclone_path -up rcl/rclone_path/rc -sync"""
+
 new_name = """<b>New Name</b>: -n
 
 /cmd link -n new name
@@ -47,11 +50,22 @@ upload = """<b>Upload Destination</b>: -up
 You can directly add the upload path: -up remote:dir/subdir or -up (Gdrive_id) or -up id/username
 If DEFAULT_UPLOAD is `rc` then you can pass up: `gd` to upload using gdrive tools to GDRIVE_ID.
 If DEFAULT_UPLOAD is `gd` then you can pass up: `rc` to upload to RCLONE_PATH.
+
 If you want to add path or gdrive manually from your config/token (uploaded from usetting) add mrcc: for rclone and mtp: before the path/gdrive_id without space.
-/cmd link -up mrcc:main:dump or -up mtp:gdrive_id or -up b:id/username(leech by bot) or -up u:id/username(leech by user)
-Incase you want to specify whether using token or service accounts you can add tp:link or tp:gdrive_id or sa:link or sa:gdrive_id. This for links and upload destination.
-DEFAULT_UPLOAD doesn't effect on leech cmds.
+/cmd link -up mrcc:main:dump or -up mtp:gdrive_id or -up b:id/@username/pm(leech by bot) or -up u:id/@username(leech by user) or -up m:id/@username(mixed leech)
+
+In case you want to specify whether using token.pickle or service accounts you can add tp:gdrive_id or sa:gdrive_id or mtp:gdrive_id.
+DEFAULT_UPLOAD doesn't affect on leech cmds.
 """
+
+user_download = """<b>User Download</b>: link
+
+/cmd tp:link to download using owner token.pickle incase service account enabled.
+/cmd sa:link to download using service account incase service account disabled.
+/cmd tp:gdrive_id to download using token.pickle and file_id incase service account enabled.
+/cmd sa:gdrive_id to download using service account and file_id incase service account disabled.
+/cmd mtp:gdrive_id or mtp:link to download using user token.pickle uploaded from usetting
+/cmd mrcc:remote:path to download using user rclone config uploaded from usetting"""
 
 rcf = """<b>Rclone Flags</b>: -rcf
 
@@ -61,7 +75,7 @@ Check here all <a href='https://rclone.org/flags/'>RcloneFlags</a>."""
 
 bulk = """<b>Bulk Download</b>: -b
 
-Bulk can be used by text message and by replying to text file contains links seperated by new line.
+Bulk can be used by text message and by replying to text file contains links separated by new line.
 You can use it only by reply to message(text/file).
 Example:
 link1 -n new name -up remote1:path1 -rcf |key:value|key:value
@@ -109,13 +123,13 @@ Note: Range link will work only by replying cmd to it"""
 
 sample_video = """<b>Sample Video</b>: -sv
 
-Create sample video for one video or folder of vidoes.
+Create sample video for one video or folder of videos.
 /cmd -sv (it will take the default values which 60sec sample duration and part duration is 4sec).
 You can control those values. Example: /cmd -sv 70:5(sample-duration:part-duration) or /cmd -sv :5 or /cmd -sv 70."""
 
 screenshot = """<b>ScreenShots</b>: -ss
 
-Create up to 10 screenshots for one video or folder of vidoes.
+Create up to 10 screenshots for one video or folder of videos.
 /cmd -ss (it will take the default values which is 10 photos).
 You can control this value. Example: /cmd -ss 6."""
 
@@ -132,7 +146,7 @@ zip_arg = """<b>Zip</b>: -z password
 
 qual = """<b>Quality Buttons</b>: -s
 
-Incase default quality added from yt-dlp options using format option and you need to select quality for specific link or links with multi links feature.
+In case default quality added from yt-dlp options using format option and you need to select quality for specific link or links with multi links feature.
 /cmd link -s"""
 
 yt_opt = """<b>Options</b>: -opt
@@ -143,16 +157,40 @@ Like playlist_items:10 works with string, so no need to add `^` before the numbe
 You can add tuple and dict also. Use double quotes inside dict."""
 
 convert_media = """<b>Convert Media</b>: -ca -cv
-/cmd link -ca mp3 -cv mp4  (convert all audios to mp3 and videos to mp4)
+/cmd link -ca mp3 -cv mp4 (convert all audios to mp3 and all videos to mp4)
 /cmd link -ca mp3 (convert all audios to mp3)
 /cmd link -cv mp4 (convert all videos to mp4)
 /cmd link -ca mp3 + flac ogg (convert only flac and ogg audios to mp3)
 /cmd link -cv mkv - webm flv (convert all videos to mp4 except webm and flv)"""
 
 force_start = """<b>Force Start</b>: -f -fd -fu
-/cmd link -f (force downlaod and upload)
+/cmd link -f (force download and upload)
 /cmd link -fd (force download only)
 /cmd link -fu (force upload directly after download finish)"""
+
+gdrive = """<b>Gdrive</b>: link
+If DEFAULT_UPLOAD is `rc` then you can pass up: `gd` to upload using gdrive tools to GDRIVE_ID.
+/cmd gdriveLink or gdl or gdriveId -up gdl or gdriveId or gd
+/cmd tp:gdriveLink or tp:gdriveId -up tp:gdriveId or gdl or gd (to use token.pickle if service account enabled)
+/cmd sa:gdriveLink or sa:gdriveId -p sa:gdriveId or gdl or gd (to use service account if service account disabled)
+/cmd mtp:gdriveLink or mtp:gdriveId -up mtp:gdriveId or gdl or gd(if you have added upload gdriveId from usetting) (to use user token.pickle that uploaded by usetting)"""
+
+rclone_cl = """<b>Rclone</b>: path
+If DEFAULT_UPLOAD is `gd` then you can pass up: `rc` to upload to RCLONE_PATH.
+/cmd rcl/rclone_path -up rcl/rclone_path/rc -rcf flagkey:flagvalue|flagkey|flagkey:flagvalue
+/cmd rcl or rclonePath -up rclonePath or rc or rcl
+/cmd mrcc:rclonePath -up rcl or rc(if you have add rclone path from usetting) (to use user config)"""
+
+name_sub = """<b>Name Substitution</b>: -ns
+/cmd link -ns tea : coffee : s|ACC :  : s|mP4
+This will affect on all files. Format: wordToReplace : wordToReplaceWith : sensitiveCase
+1. tea will get replaced by coffee with sensitive case because I have added `s` last of the option.
+2. ACC will get removed because I have added nothing between to replace with sensitive case because I have added `s` last of the option.
+3. mP4 will get removed because I have added nothing to replace with
+"""
+
+mixed_leech = """Mixed leech: -ml
+/cmd link -ml (leech by user and bot session with respect to size)"""
 
 YT_HELP_DICT = {
     "main": yt,
@@ -171,6 +209,8 @@ YT_HELP_DICT = {
     "Screenshot": screenshot,
     "Convert-Media": convert_media,
     "Force-Start": force_start,
+    "Name-Substitute": name_sub,
+    "Mixed-Leech": mixed_leech,
 }
 
 MIRROR_HELP_DICT = {
@@ -179,7 +219,7 @@ MIRROR_HELP_DICT = {
     "DL-Auth": "<b>Direct link authorization</b>: -au -ap\n\n/cmd link -au username -ap password",
     "Headers": "<b>Direct link custom headers</b>: -h\n\n/cmd link -h key: value key1: value1",
     "Extract/Zip": extract_zip,
-    "Torrent-Files": "<b>Bittorrent/JDownloader File Selection</b>: -s\n\n/cmd link -s or by replying to file/link",
+    "Select-Files": "<b>Bittorrent/JDownloader/Sabnzbd File Selection</b>: -s\n\n/cmd link -s or by replying to file/link",
     "Torrent-Seed": seed,
     "Multi-Link": multi_link,
     "Same-Directory": same_dir,
@@ -195,6 +235,17 @@ MIRROR_HELP_DICT = {
     "Screenshot": screenshot,
     "Convert-Media": convert_media,
     "Force-Start": force_start,
+    "User-Download": user_download,
+    "Name-Substitute": name_sub,
+    "Mixed-Leech": mixed_leech,
+}
+
+CLONE_HELP_DICT = {
+    "main": clone,
+    "Multi-Link": multi_link,
+    "Bulk": bulk,
+    "Gdrive": gdrive,
+    "Rclone": rclone_cl,
 }
 
 RSS_HELP_MESSAGE = """
@@ -206,48 +257,19 @@ Title3 link -c cmd -d ratio:time -z password
 -c command -up mrcc:remote:path/subdir -rcf --buffer-size:8M|key|key:value
 -inf For included words filter.
 -exf For excluded words filter.
+-stv true or false (sensitive filter)
 
 Example: Title https://www.rss-url.com -inf 1080 or 720 or 144p|mkv or mp4|hevc -exf flv or web|xxx
-This filter will parse links that it's titles contains `(1080 or 720 or 144p) and (mkv or mp4) and hevc` and doesn't conyain (flv or web) and xxx` words. You can add whatever you want.
+This filter will parse links that its titles contain `(1080 or 720 or 144p) and (mkv or mp4) and hevc` and doesn't contain (flv or web) and xxx words. You can add whatever you want.
 
-Another example: -inf  1080  or 720p|.web. or .webrip.|hvec or x264. This will parse titles that contains ( 1080  or 720p) and (.web. or .webrip.) and (hvec or x264). I have added space before and after 1080 to avoid wrong matching. If this `10805695` number in title it will match 1080 if added 1080 without spaces after it.
+Another example: -inf  1080  or 720p|.web. or .webrip.|hvec or x264. This will parse titles that contain ( 1080  or 720p) and (.web. or .webrip.) and (hvec or x264). I have added space before and after 1080 to avoid wrong matching. If this `10805695` number in title it will match 1080 if added 1080 without spaces after it.
 
 Filter Notes:
 1. | means and.
-2. Add `or` between similar keys, you can add it between qualities or between extensions, so don't add filter like this f: 1080|mp4 or 720|web because this will parse 1080 and (mp4 or 720) and web ... not (1080 and mp4) or (720 and web)."
-3. You can add `or` and `|` as much as you want."
-4. Take look on title if it has static special character after or before the qualities or extensions or whatever and use them in filter to avoid wrong match.
+2. Add `or` between similar keys, you can add it between qualities or between extensions, so don't add filter like this f: 1080|mp4 or 720|web because this will parse 1080 and (mp4 or 720) and web ... not (1080 and mp4) or (720 and web).
+3. You can add `or` and `|` as much as you want.
+4. Take a look at the title if it has a static special character after or before the qualities or extensions or whatever and use them in the filter to avoid wrong match.
 Timeout: 60 sec.
-"""
-
-CLONE_HELP_MESSAGE = """
-Send Gdrive|Gdot|Filepress|Filebee|Appdrive|Gdflix link or rclone path along with command or by replying to the link/rc_path by command.
-
-<b>Multi links only by replying to first gdlink or rclone_path:</b> -i
-/cmd -i 10(number of links/paths)
-
-<b>Bulk Clone</b>: -b
-Bulk can be used by text message and by replying to text file contains links seperated by new line.
-You can use it only by reply to message(text/file).
-Example:
-link1 -up remote1:path1 -rcf |key:value|key:value
-link2 -up remote2:path2
-link3 -up remote2:path2
-Reply to this example by this cmd /cmd -b(bulk)
-You can set start and end of the links from the bulk like seed, with -b start:end or only end by -b :end or only start by -b start. The default start is from zero(first link) to inf.
-
-<b>Clone Destination</b>: -up
-If DEFAULT_UPLOAD is `rc` then you can pass up: `gd` to upload using gdrive tools to GDRIVE_ID.
-If DEFAULT_UPLOAD is `gd` then you can pass up: `rc` to upload to RCLONE_PATH.
-If you want to add path or gdrive manually from your config/token (uploaded from usetting) add mrcc: for rclone and mtp: before the path/gdrive_id without space.
-Incase you want to specify whether using token or service accounts you can add tp:link or tp:gdrive_id or sa:link or sa:gdrive_id. This for links and upload destination.
-
-<b>Gdrive:</b>
-/cmd gdrivelink/gdl/gdrive_id -up gdl/gdrive_id/gd
-
-<b>Rclone:</b>
-/cmd rcl/rclone_path -up rcl/rclone_path/rc -rcf flagkey:flagvalue|flagkey|flagkey:flagvalue
-Use -sync to use sync method in rclone. Example: /cmd rcl/rclone_path -up rcl/rclone_path/rc -sync
 """
 
 PASSWORD_ERROR_MESSAGE = """

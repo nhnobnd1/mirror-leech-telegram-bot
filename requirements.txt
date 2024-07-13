@@ -1,4 +1,3 @@
-aiohttp
 aiofiles
 aioshutil
 anytree
@@ -22,7 +21,7 @@ pillow
 psutil
 pycryptodome
 pymongo
-pyrogram
+git+https://github.com/5hojib/pyrogram-peer-fix.git
 python-dotenv
 python-magic
 qbittorrent-api

@@ -16,10 +16,6 @@ from pyrogram.handlers import MessageHandler
 from signal import signal, SIGINT
 from sys import executable
 from time import time
-from os import environ
-from requests import utils as rutils, get as rget
-import json
-import requests
 
 from bot import (
     bot,
@@ -29,6 +25,7 @@ from bot import (
     DATABASE_URL,
     INCOMPLETE_TASK_NOTIFIER,
     scheduler,
+    sabnzbd_client,
 )
 from .helper.ext_utils.bot_utils import cmd_exec, sync_to_async, create_help_buttons
 from .helper.ext_utils.db_handler import DbManager
@@ -37,7 +34,7 @@ from .helper.ext_utils.jdownloader_booter import jdownloader
 from .helper.ext_utils.status_utils import get_readable_file_size, get_readable_time
 from .helper.ext_utils.telegraph_helper import telegraph
 from .helper.listeners.aria2_listener import start_aria2_listener
-from .helper.mirror_utils.rclone_utils.serve import rclone_serve_booter
+from .helper.mirror_leech_utils.rclone_utils.serve import rclone_serve_booter
 from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.telegram_helper.button_build import ButtonMaker
 from .helper.telegram_helper.filters import CustomFilters
@@ -47,13 +44,13 @@ from .modules import (
     cancel_task,
     clone,
     exec,
+    file_selector,
     gd_count,
     gd_delete,
     gd_search,
     mirror_leech,
     status,
     torrent_search,
-    torrent_select,
     ytdlp,
     rss,
     shell,
@@ -73,10 +70,6 @@ async def stats(_, message):
     else:
         last_commit = "No UPSTREAM_REPO"
     total, used, free, disk = disk_usage("/")
-    URL_MAGNET = environ.get('URL_MAGNET', '')
-    totalApi = rget(f'{URL_MAGNET}total')
-    count = json.loads(totalApi.content)
-
     swap = swap_memory()
     memory = virtual_memory()
     stats = (
@@ -96,13 +89,6 @@ async def stats(_, message):
         f"<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n"
         f"<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n"
         f"<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n"
-        f"<b>Today 0 J:</b> {count[0]}\n\n"
-        f"<b>Today 1 J:</b> {count[2]}\n\n"
-        f"<b>Today 2 J:</b> {count[4]}\n\n"
-        f"<b>Today 0 F:</b> {count[1]}\n\n"
-        f"<b>Today 1 F:</b> {count[3]}\n\n"
-        f"<b>Today 2 F:</b> {count[5]}\n\n"
-
     )
     await sendMessage(message, stats)
 
@@ -127,6 +113,7 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
 
 
 async def restart(_, message):
+    Intervals["stopAll"] = True
     restart_message = await sendMessage(message, "Restarting...")
     if scheduler.running:
         scheduler.shutdown(wait=False)
@@ -134,12 +121,23 @@ async def restart(_, message):
         qb.cancel()
     if jd := Intervals["jd"]:
         jd.cancel()
+    if nzb := Intervals["nzb"]:
+        nzb.cancel()
     if st := Intervals["status"]:
         for intvl in list(st.values()):
             intvl.cancel()
     await sync_to_async(clean_all)
+    if sabnzbd_client.LOGGED_IN:
+        await gather(
+            sabnzbd_client.pause_all(),
+            sabnzbd_client.purge_all(True),
+            sabnzbd_client.delete_history("all", delete_files=True),
+        )
     proc1 = await create_subprocess_exec(
-        "pkill", "-9", "-f", "gunicorn|aria2c|qbittorrent-nox|ffmpeg|rclone|java"
+        "pkill",
+        "-9",
+        "-f",
+        "gunicorn|aria2c|qbittorrent-nox|ffmpeg|rclone|java|sabnzbdplus",
     )
     proc2 = await create_subprocess_exec("python3", "update.py")
     await gather(proc1.wait(), proc2.wait())
@@ -161,20 +159,22 @@ async def log(_, message):
 
 help_string = f"""
 NOTE: Try each command without any argument to see more detalis.
-/{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to Google Drive.
-/{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to Google Drive using qBittorrent.
-/{BotCommands.JdMirrorCommand[0]} or /{BotCommands.JdMirrorCommand[1]}: Start Mirroring to Google Drive using JDownloader.
+/{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to cloud.
+/{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to cloud using qBittorrent.
+/{BotCommands.JdMirrorCommand[0]} or /{BotCommands.JdMirrorCommand[1]}: Start Mirroring to cloud using JDownloader.
+/{BotCommands.NzbMirrorCommand[0]} or /{BotCommands.NzbMirrorCommand[1]}: Start Mirroring to cloud using Sabnzbd.
 /{BotCommands.YtdlCommand[0]} or /{BotCommands.YtdlCommand[1]}: Mirror yt-dlp supported link.
 /{BotCommands.LeechCommand[0]} or /{BotCommands.LeechCommand[1]}: Start leeching to Telegram.
 /{BotCommands.QbLeechCommand[0]} or /{BotCommands.QbLeechCommand[1]}: Start leeching using qBittorrent.
-/{BotCommands.JdLeechCommand[0]} or /{BotCommands.JdLeechCommand[1]}: Start leeching using qBittorrent.
+/{BotCommands.JdLeechCommand[0]} or /{BotCommands.JdLeechCommand[1]}: Start leeching using JDownloader.
+/{BotCommands.NzbLeechCommand[0]} or /{BotCommands.NzbLeechCommand[1]}: Start leeching using Sabnzbd.
 /{BotCommands.YtdlLeechCommand[0]} or /{BotCommands.YtdlLeechCommand[1]}: Leech yt-dlp supported link.
 /{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive.
 /{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.
 /{BotCommands.DeleteCommand} [drive_url]: Delete file/folder from Google Drive (Only Owner & Sudo).
-/{BotCommands.UserSetCommand} [query]: Users settings.
-/{BotCommands.BotSetCommand} [query]: Bot settings.
-/{BotCommands.BtSelectCommand}: Select files from torrents by gid or reply.
+/{BotCommands.UserSetCommand[0]} or /{BotCommands.UserSetCommand[1]} [query]: Users settings.
+/{BotCommands.BotSetCommand[0]} or /{BotCommands.BotSetCommand[1]} [query]: Bot settings.
+/{BotCommands.SelectCommand}: Select files from torrents or nzb by gid or reply.
 /{BotCommands.CancelTaskCommand[0]} or /{BotCommands.CancelTaskCommand[1]} [gid]: Cancel task by gid or reply.
 /{BotCommands.ForceStartCommand[0]} or /{BotCommands.ForceStartCommand[1]} [gid]: Force start task by gid or reply.
 /{BotCommands.CancelAllCommand} [query]: Cancel all [status] tasks.
@@ -209,7 +209,7 @@ async def restart_notification():
     else:
         chat_id, msg_id = 0, 0
 
-    async def send_incompelete_task_message(cid, msg):
+    async def send_incomplete_task_message(cid, msg):
         try:
             if msg.startswith("Restarted Successfully!"):
                 await bot.edit_message_text(
@@ -235,10 +235,10 @@ async def restart_notification():
                     for index, link in enumerate(links, start=1):
                         msg += f" <a href='{link}'>{index}</a> |"
                         if len(msg.encode()) > 4000:
-                            await send_incompelete_task_message(cid, msg)
+                            await send_incomplete_task_message(cid, msg)
                             msg = ""
                 if msg:
-                    await send_incompelete_task_message(cid, msg)
+                    await send_incomplete_task_message(cid, msg)
 
     if await aiopath.isfile(".restartmsg"):
         try:
@@ -251,6 +251,8 @@ async def restart_notification():
 
 
 async def main():
+    if DATABASE_URL:
+        await DbManager().db_load()
     jdownloader.initiate()
     await gather(
         sync_to_async(clean_all),

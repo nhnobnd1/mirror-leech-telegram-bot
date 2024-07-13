@@ -11,9 +11,9 @@ from bot.helper.ext_utils.bot_utils import (
     new_task,
     cmd_exec,
     arg_parser,
+    COMMAND_USAGE,
 )
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
-from bot.helper.ext_utils.help_messages import CLONE_HELP_MESSAGE
 from bot.helper.ext_utils.links_utils import (
     is_gdrive_link,
     is_share_link,
@@ -22,14 +22,14 @@ from bot.helper.ext_utils.links_utils import (
 )
 from bot.helper.ext_utils.task_manager import stop_duplicate_check
 from bot.helper.listeners.task_listener import TaskListener
-from bot.helper.mirror_utils.download_utils.direct_link_generator import (
+from bot.helper.mirror_leech_utils.download_utils.direct_link_generator import (
     direct_link_generator,
 )
-from bot.helper.mirror_utils.gdrive_utils.clone import gdClone
-from bot.helper.mirror_utils.gdrive_utils.count import gdCount
-from bot.helper.mirror_utils.rclone_utils.transfer import RcloneTransferHelper
-from bot.helper.mirror_utils.status_utils.gdrive_status import GdriveStatus
-from bot.helper.mirror_utils.status_utils.rclone_status import RcloneStatus
+from bot.helper.mirror_leech_utils.gdrive_utils.clone import gdClone
+from bot.helper.mirror_leech_utils.gdrive_utils.count import gdCount
+from bot.helper.mirror_leech_utils.rclone_utils.transfer import RcloneTransferHelper
+from bot.helper.mirror_leech_utils.status_utils.gdrive_status import GdriveStatus
+from bot.helper.mirror_leech_utils.status_utils.rclone_status import RcloneStatus
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.message_utils import (
@@ -48,6 +48,7 @@ class Clone(TaskListener):
         __=None,
         ___=None,
         ____=None,
+        _____=None,
         bulk=None,
         multiTag=None,
         options="",
@@ -68,7 +69,7 @@ class Clone(TaskListener):
         text = self.message.text.split("\n")
         input_list = text[0].split(" ")
 
-        arg_base = {
+        args = {
             "link": "",
             "-i": 0,
             "-b": False,
@@ -77,7 +78,7 @@ class Clone(TaskListener):
             "-sync": False,
         }
 
-        args = arg_parser(input_list[1:], arg_base)
+        arg_parser(input_list[1:], args)
 
         try:
             self.multi = int(args["-i"])
@@ -109,13 +110,14 @@ class Clone(TaskListener):
         if not self.link and (reply_to := self.message.reply_to_message):
             self.link = reply_to.text.split("\n", 1)[0].strip()
 
-        LOGGER.info(self.link)
-
         self.run_multi(input_list, "", Clone)
 
         if len(self.link) == 0:
-            await sendMessage(self.message, CLONE_HELP_MESSAGE)
+            await sendMessage(
+                self.message, COMMAND_USAGE["clone"][0], COMMAND_USAGE["clone"][1]
+            )
             return
+        LOGGER.info(self.link)
         try:
             await self.beforeStart()
         except Exception as e:
@@ -278,7 +280,9 @@ class Clone(TaskListener):
                     flink, files, folders, mime_type, destination
                 )
         else:
-            await sendMessage(self.message, CLONE_HELP_MESSAGE)
+            await sendMessage(
+                self.message, COMMAND_USAGE["clone"][0], COMMAND_USAGE["clone"][1]
+            )
 
 
 async def clone(client, message):

@@ -4,7 +4,7 @@ from re import match as re_match
 from time import time
 
 from bot import config_dict, LOGGER, status_dict, task_dict_lock, Intervals, bot, user
-from bot.helper.ext_utils.bot_utils import setInterval, sync_to_async
+from bot.helper.ext_utils.bot_utils import setInterval
 from bot.helper.ext_utils.exceptions import TgLinkException
 from bot.helper.ext_utils.status_utils import get_readable_message
 
@@ -45,7 +45,7 @@ async def editMessage(message, text, buttons=None, block=True):
         return str(e)
 
 
-async def sendFile(message, file, caption=None):
+async def sendFile(message, file, caption=""):
     try:
         return await message.reply_document(
             document=file, quote=True, caption=caption, disable_notification=True
@@ -61,20 +61,13 @@ async def sendFile(message, file, caption=None):
 
 async def sendRss(text):
     try:
-        if user:
-            return await user.send_message(
-                chat_id=config_dict["RSS_CHAT"],
-                text=text,
-                disable_web_page_preview=True,
-                disable_notification=True,
-            )
-        else:
-            return await bot.send_message(
-                chat_id=config_dict["RSS_CHAT"],
-                text=text,
-                disable_web_page_preview=True,
-                disable_notification=True,
-            )
+        app = user or bot
+        return await app.send_message(
+            chat_id=config_dict["RSS_CHAT"],
+            text=text,
+            disable_web_page_preview=True,
+            disable_notification=True,
+        )
     except FloodWait as f:
         LOGGER.warning(str(f))
         await sleep(f.value * 1.2)
@@ -103,8 +96,8 @@ async def delete_status():
     async with task_dict_lock:
         for key, data in list(status_dict.items()):
             try:
-                del status_dict[key]
                 await deleteMessage(data["message"])
+                del status_dict[key]
             except Exception as e:
                 LOGGER.error(str(e))
 
@@ -176,6 +169,8 @@ async def get_tg_link_message(link):
 
 
 async def update_status_message(sid, force=False):
+    if Intervals["stopAll"]:
+        return
     async with task_dict_lock:
         if not status_dict.get(sid):
             if obj := Intervals["status"].get(sid):
@@ -189,8 +184,8 @@ async def update_status_message(sid, force=False):
         status = status_dict[sid]["status"]
         is_user = status_dict[sid]["is_user"]
         page_step = status_dict[sid]["page_step"]
-        text, buttons = await sync_to_async(
-            get_readable_message, sid, is_user, page_no, status, page_step
+        text, buttons = await get_readable_message(
+            sid, is_user, page_no, status, page_step
         )
         if text is None:
             del status_dict[sid]
@@ -218,6 +213,8 @@ async def update_status_message(sid, force=False):
 
 
 async def sendStatusMessage(msg, user_id=0):
+    if Intervals["stopAll"]:
+        return
     async with task_dict_lock:
         sid = user_id or msg.chat.id
         is_user = bool(user_id)
@@ -225,8 +222,8 @@ async def sendStatusMessage(msg, user_id=0):
             page_no = status_dict[sid]["page_no"]
             status = status_dict[sid]["status"]
             page_step = status_dict[sid]["page_step"]
-            text, buttons = await sync_to_async(
-                get_readable_message, sid, is_user, page_no, status, page_step
+            text, buttons = await get_readable_message(
+                sid, is_user, page_no, status, page_step
             )
             if text is None:
                 del status_dict[sid]
@@ -245,7 +242,7 @@ async def sendStatusMessage(msg, user_id=0):
             message.text = text
             status_dict[sid].update({"message": message, "time": time()})
         else:
-            text, buttons = await sync_to_async(get_readable_message, sid, is_user)
+            text, buttons = await get_readable_message(sid, is_user)
             if text is None:
                 return
             message = await sendMessage(msg, text, buttons, block=False)

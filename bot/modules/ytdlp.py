@@ -1,4 +1,4 @@
-from aiohttp import ClientSession
+from httpx import AsyncClient
 from asyncio import wait_for, Event, wrap_future
 from functools import partial
 from pyrogram.filters import command, regex, user
@@ -17,7 +17,7 @@ from bot.helper.ext_utils.bot_utils import (
 from bot.helper.ext_utils.links_utils import is_url
 from bot.helper.ext_utils.status_utils import get_readable_file_size, get_readable_time
 from bot.helper.listeners.task_listener import TaskListener
-from bot.helper.mirror_utils.download_utils.yt_dlp_download import YoutubeDLHelper
+from bot.helper.mirror_leech_utils.download_utils.yt_dlp_download import YoutubeDLHelper
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.telegram_helper.button_build import ButtonMaker
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -51,7 +51,7 @@ async def select_format(_, query, obj):
     elif data[1] == "cancel":
         await editMessage(message, "Task has been cancelled.")
         obj.qual = None
-        obj.is_cancelled = True
+        obj.listener.isCancelled = True
         obj.event.set()
     else:
         if data[1] == "sub":
@@ -65,13 +65,12 @@ async def select_format(_, query, obj):
 
 class YtSelection:
     def __init__(self, listener):
-        self._listener = listener
+        self.listener = listener
         self._is_m4a = False
         self._reply_to = None
         self._time = time()
         self._timeout = 120
         self._is_playlist = False
-        self.is_cancelled = False
         self._main_buttons = None
         self.event = Event()
         self.formats = {}
@@ -80,9 +79,9 @@ class YtSelection:
     @new_thread
     async def _event_handler(self):
         pfunc = partial(select_format, obj=self)
-        handler = self._listener.client.add_handler(
+        handler = self.listener.client.add_handler(
             CallbackQueryHandler(
-                pfunc, filters=regex("^ytq") & user(self._listener.userId)
+                pfunc, filters=regex("^ytq") & user(self.listener.userId)
             ),
             group=-1,
         )
@@ -91,10 +90,10 @@ class YtSelection:
         except:
             await editMessage(self._reply_to, "Timed Out. Task has been cancelled!")
             self.qual = None
-            self.is_cancelled = True
+            self.listener.isCancelled = True
             self.event.set()
         finally:
-            self._listener.client.remove_handler(*handler)
+            self.listener.client.remove_handler(*handler)
 
     async def get_quality(self, result):
         future = self._event_handler()
@@ -171,10 +170,10 @@ class YtSelection:
             self._main_buttons = buttons.build_menu(2)
             msg = f"Choose Video Quality:\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
         self._reply_to = await sendMessage(
-            self._listener.message, msg, self._main_buttons
+            self.listener.message, msg, self._main_buttons
         )
         await wrap_future(future)
-        if not self.is_cancelled:
+        if not self.listener.isCancelled:
             await deleteMessage(self._reply_to)
         return self.qual
 
@@ -245,16 +244,16 @@ def extract_info(link, options):
 
 async def _mdisk(link, name):
     key = link.split("/")[-1]
-    async with ClientSession() as session:
-        async with session.get(
+    async with AsyncClient(verify=False) as client:
+        resp = await client.get(
             f"https://diskuploader.entertainvideo.com/v1/file/cdnurl?param={key}"
-        ) as resp:
-            if resp.status == 200:
-                resp_json = await resp.json()
-                link = resp_json["source"]
-                if not name:
-                    name = resp_json["filename"]
-            return name, link
+        )
+    if resp.status_code == 200:
+        resp_json = resp.json()
+        link = resp_json["source"]
+        if not name:
+            name = resp_json["filename"]
+    return name, link
 
 
 class YtDlp(TaskListener):
@@ -265,6 +264,7 @@ class YtDlp(TaskListener):
         _=None,
         isLeech=False,
         __=None,
+        ___=None,
         sameDir=None,
         bulk=None,
         multiTag=None,
@@ -290,7 +290,7 @@ class YtDlp(TaskListener):
         input_list = text[0].split(" ")
         qual = ""
 
-        arg_base = {
+        args = {
             "-s": False,
             "-b": False,
             "-z": False,
@@ -299,6 +299,7 @@ class YtDlp(TaskListener):
             "-f": False,
             "-fd": False,
             "-fu": False,
+            "-ml": False,
             "-i": 0,
             "-sp": 0,
             "link": "",
@@ -310,9 +311,10 @@ class YtDlp(TaskListener):
             "-t": "",
             "-ca": "",
             "-cv": "",
+            "-ns": "",
         }
 
-        args = arg_parser(input_list[1:], arg_base)
+        arg_parser(input_list[1:], args)
 
         try:
             self.multi = int(args["-i"])
@@ -334,6 +336,8 @@ class YtDlp(TaskListener):
         self.forceUpload = args["-fu"]
         self.convertAudio = args["-ca"]
         self.convertVideo = args["-cv"]
+        self.nameSub = args["-ns"]
+        self.mixedLeech = args["-ml"]
 
         isBulk = args["-b"]
         folder_name = args["-m"]
@@ -386,7 +390,7 @@ class YtDlp(TaskListener):
             return
 
         if "mdisk.me" in self.link:
-            name, self.link = await _mdisk(self.link, name)
+            self.name, self.link = await _mdisk(self.link, self.name)
 
         try:
             await self.beforeStart()

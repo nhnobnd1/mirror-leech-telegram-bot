@@ -1,12 +1,14 @@
-from aiofiles.os import listdir
+from aiofiles.os import path, makedirs, listdir, rename
+from aioshutil import rmtree
 from json import dump
 from random import randint
+from asyncio import sleep
+from re import match
 
-from bot import config_dict, LOGGER, jd_lock
+from bot import config_dict, LOGGER, jd_lock, bot_name
 from bot.helper.ext_utils.bot_utils import (
     cmd_exec,
     new_task,
-    sync_to_async,
 )
 from myjd import Myjdapi
 from myjd.exception import (
@@ -32,23 +34,24 @@ class JDownloader(Myjdapi):
     async def initiate(self):
         self.device = None
         async with jd_lock:
-            is_connected = await sync_to_async(self.jdconnect)
+            is_connected = await self.jdconnect()
             if is_connected:
                 self.boot()
-                await sync_to_async(self.connectToDevice)
+                await self.connectToDevice()
 
     @new_task
     async def boot(self):
         await cmd_exec(["pkill", "-9", "-f", "java"])
         self.device = None
         self.error = "Connecting... Try agin after couple of seconds"
-        self._device_name = f"{randint(0, 1000)}"
-        logs = await listdir("/JDownloader/logs")
-        if len(logs) > 2:
-            LOGGER.info("Starting JDownloader... This might take up to 5 sec")
+        self._device_name = f"{randint(0, 1000)}@{bot_name}"
+        if await path.exists("/JDownloader/logs"):
+            LOGGER.info(
+                "Starting JDownloader... This might take up to 10 sec and might restart once if update available!"
+            )
         else:
             LOGGER.info(
-                "Starting JDownloader... This might take up to 15 sec and might restart once after build!"
+                "Starting JDownloader... This might take up to 8 sec and might restart once after build!"
             )
         jdata = {
             "autoconnectenabledv2": True,
@@ -56,23 +59,34 @@ class JDownloader(Myjdapi):
             "devicename": f"{self._device_name}",
             "email": config_dict["JD_EMAIL"],
         }
+        await makedirs("/JDownloader/cfg", exist_ok=True)
         with open(
             "/JDownloader/cfg/org.jdownloader.api.myjdownloader.MyJDownloaderSettings.json",
             "w",
         ) as sf:
             sf.truncate(0)
             dump(jdata, sf)
+        if not await path.exists("/JDownloader/JDownloader.jar"):
+            pattern = r"JDownloader\.jar\.backup.\d$"
+            for filename in await listdir("/JDownloader"):
+                if match(pattern, filename):
+                    await rename(
+                        f"/JDownloader/{filename}", "/JDownloader/JDownloader.jar"
+                    )
+                    break
+            await rmtree("/JDownloader/update")
+            await rmtree("/JDownloader/tmp")
         cmd = "java -Dsun.jnu.encoding=UTF-8 -Dfile.encoding=UTF-8 -Djava.awt.headless=true -jar /JDownloader/JDownloader.jar"
         _, __, code = await cmd_exec(cmd, shell=True)
         if code != -9:
             self.boot()
 
-    def jdconnect(self):
+    async def jdconnect(self):
         if not config_dict["JD_EMAIL"] or not config_dict["JD_PASS"]:
             return False
         try:
-            self.connect(config_dict["JD_EMAIL"], config_dict["JD_PASS"])
-            LOGGER.info("JDownloader is connected!")
+            await self.connect(config_dict["JD_EMAIL"], config_dict["JD_PASS"])
+            LOGGER.info("MYJDownloader is connected!")
             return True
         except (
             MYJDAuthFailedException,
@@ -89,16 +103,19 @@ class JDownloader(Myjdapi):
             LOGGER.info(
                 f"Failed to connect with jdownloader! Retrying... ERROR: {self.error}"
             )
-            return self.jdconnect()
+            return await self.jdconnect()
 
-    def connectToDevice(self):
+    async def connectToDevice(self):
         self.error = "Connecting to device..."
+        await sleep(0.5)
         while True:
             self.device = None
             if not config_dict["JD_EMAIL"] or not config_dict["JD_PASS"]:
-                return
+                self.error = "JDownloader Credentials not provided!"
+                await cmd_exec(["pkill", "-9", "-f", "java"])
+                return False
             try:
-                self.update_devices()
+                await self.update_devices()
                 if not (devices := self.list_devices()):
                     continue
                 for device in devices:
@@ -110,9 +127,10 @@ class JDownloader(Myjdapi):
             except:
                 continue
             break
-        self.device.enable_direct_connection()
+        await self.device.enable_direct_connection()
         self.error = ""
         LOGGER.info("JDownloader Device have been Connected!")
+        return True
 
 
 jdownloader = JDownloader()

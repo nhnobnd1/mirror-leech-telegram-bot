@@ -2,7 +2,7 @@ from aiofiles.os import remove, path as aiopath
 from asyncio import sleep
 from time import time
 
-from bot import aria2, task_dict_lock, task_dict, LOGGER, config_dict
+from bot import aria2, task_dict_lock, task_dict, LOGGER, config_dict, Intervals
 from bot.helper.ext_utils.bot_utils import (
     new_thread,
     bt_selection_buttons,
@@ -11,7 +11,7 @@ from bot.helper.ext_utils.bot_utils import (
 from bot.helper.ext_utils.files_utils import clean_unwanted
 from bot.helper.ext_utils.status_utils import getTaskByGid
 from bot.helper.ext_utils.task_manager import stop_duplicate_check
-from bot.helper.mirror_utils.status_utils.aria2_status import Aria2Status
+from bot.helper.mirror_leech_utils.status_utils.aria2_status import Aria2Status
 from bot.helper.telegram_helper.message_utils import (
     sendMessage,
     deleteMessage,
@@ -37,7 +37,7 @@ async def _onDownloadStarted(api, gid):
                     if download.is_removed or download.followed_by_ids:
                         await deleteMessage(meta)
                         break
-                    download = download.live
+                    download = await sync_to_async(download.live)
         return
     else:
         LOGGER.info(f"onDownloadStarted: {download.name} - Gid: {gid}")
@@ -46,7 +46,7 @@ async def _onDownloadStarted(api, gid):
     if task := await getTaskByGid(gid):
         download = await sync_to_async(api.get_download, gid)
         await sleep(2)
-        download = download.live
+        download = await sync_to_async(download.live)
         task.listener.name = download.name
         msg, button = await stop_duplicate_check(task.listener)
         if msg:
@@ -87,6 +87,8 @@ async def _onDownloadComplete(api, gid):
         LOGGER.info(f"onDownloadComplete: {download.name} - Gid: {gid}")
         if task := await getTaskByGid(gid):
             await task.listener.onDownloadComplete()
+            if Intervals["stopAll"]:
+                return
             await sync_to_async(api.remove, [download], force=True, files=True)
 
 
@@ -95,8 +97,6 @@ async def _onBtDownloadComplete(api, gid):
     seed_start_time = time()
     await sleep(1)
     download = await sync_to_async(api.get_download, gid)
-    if download.options.follow_torrent == "false":
-        return
     LOGGER.info(f"onBtDownloadComplete: {download.name} - Gid: {gid}")
     if task := await getTaskByGid(gid):
         task.listener.isTorrent = True
@@ -125,7 +125,9 @@ async def _onBtDownloadComplete(api, gid):
             except Exception as e:
                 LOGGER.error(f"{e} GID: {gid}")
         await task.listener.onDownloadComplete()
-        download = download.live
+        if Intervals["stopAll"]:
+            return
+        download = await sync_to_async(download.live)
         if task.listener.seed:
             if download.is_complete:
                 if task := await getTaskByGid(gid):
@@ -134,7 +136,7 @@ async def _onBtDownloadComplete(api, gid):
                         f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}"
                     )
                     await sync_to_async(api.remove, [download], force=True, files=True)
-            else:
+            elif not task.listener.isCancelled:
                 async with task_dict_lock:
                     if task.listener.mid not in task_dict:
                         await sync_to_async(
@@ -145,6 +147,8 @@ async def _onBtDownloadComplete(api, gid):
                     task_dict[task.listener.mid].start_time = seed_start_time
                 LOGGER.info(f"Seeding started: {download.name} - Gid: {gid}")
                 await update_status_message(task.listener.message.chat.id)
+            else:
+                await sync_to_async(api.remove, [download], force=True, files=True)
         else:
             await sync_to_async(api.remove, [download], force=True, files=True)
 
