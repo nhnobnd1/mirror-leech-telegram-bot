@@ -3,6 +3,9 @@ from base64 import b64encode
 from pyrogram.filters import command
 from pyrogram.handlers import MessageHandler
 from re import match as re_match
+from os import environ
+from requests import get as rget
+import json
 
 from bot import bot, DOWNLOAD_DIR, LOGGER, bot_loop, task_dict_lock
 from ..helper.ext_utils.bot_utils import (
@@ -148,6 +151,25 @@ class Mirror(TaskListener):
         reply_to = None
         file_ = None
         session = ""
+        arrayLink = []
+        URL_MAGNET = environ.get('URL_MAGNET', '')
+
+        if ",j" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+            arrayLink = json.loads(dataTorrent.content)
+        
+        if ",f" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+            arrayLink = json.loads(dataTorrent.content)
+
+        if ",t" in self.link:
+            dataTorrent = rget(f'{URL_MAGNET}special/?date={self.link}')
+            arrayLink = json.loads(dataTorrent.content)
+
+        LOGGER.info(f'zoday 2 {arrayLink}')
+        
+        for currentLink in arrayLink:
+            await send_message(self.message, currentLink)
 
         try:
             self.multi = int(args["-i"])
