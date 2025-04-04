@@ -459,9 +459,10 @@ class YtDlp(TaskListener):
         finally:
             await self.run_multi(input_list, YtDlp)
 
-        if not qual:
-            qual = "bv*+ba/b"
-            LOGGER.info(f"Auto-selected highest quality: {qual}")
+        # Vô hiệu hóa hoàn toàn menu chọn chất lượng
+        self.select = False
+        qual = "bv*+ba/b"
+        LOGGER.info(f"Auto-selected highest quality: {qual}")
 
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
