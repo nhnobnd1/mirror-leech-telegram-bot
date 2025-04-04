@@ -156,7 +156,8 @@ class YtSelection:
                     if len(tbr_dict) == 1:
                         tbr, v_list = next(iter(tbr_dict.items()))
                         buttonName = f"{b_name} ({get_readable_file_size(v_list[0])})"
-                        buttons.data_button(buttonName, f"ytq sub {b_name} {tbr}")
+                        buttons.data_button(
+                            buttonName, f"ytq sub {b_name} {tbr}")
                     else:
                         buttons.data_button(b_name, f"ytq dict {b_name}")
             buttons.data_button("MP3", "ytq mp3")
@@ -361,7 +362,8 @@ class YtDlp(TaskListener):
                 if self.folder_name:
                     async with task_dict_lock:
                         if self.folder_name in self.same_dir:
-                            self.same_dir[self.folder_name]["tasks"].add(self.mid)
+                            self.same_dir[self.folder_name]["tasks"].add(
+                                self.mid)
                             for fd_name in self.same_dir:
                                 if fd_name != self.folder_name:
                                     self.same_dir[fd_name]["total"] -= 1
@@ -395,7 +397,8 @@ class YtDlp(TaskListener):
 
         await self.get_tag(text)
 
-        opt = opt or self.user_dict.get("yt_opt") or config_dict["YT_DLP_OPTIONS"]
+        opt = opt or self.user_dict.get(
+            "yt_opt") or config_dict["YT_DLP_OPTIONS"]
 
         if not self.link and (reply_to := self.message.reply_to_message):
             self.link = reply_to.text.split("\n", 1)[0].strip()
@@ -457,10 +460,8 @@ class YtDlp(TaskListener):
             await self.run_multi(input_list, YtDlp)
 
         if not qual:
-            qual = await YtSelection(self).get_quality(result)
-            if qual is None:
-                await self.remove_from_same_dir()
-                return
+            qual = "bv*+ba/b"
+            LOGGER.info(f"Auto-selected highest quality: {qual}")
 
         LOGGER.info(f"Downloading with YT-DLP: {self.link}")
         playlist = "entries" in result
