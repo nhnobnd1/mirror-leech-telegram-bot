@@ -81,18 +81,18 @@ async def search(key, site, message, method):
             if "error" in search_results or search_results["total"] == 0:
                 await edit_message(
                     message,
-                    f"No result found for <i>{key}</i>\nTorrent Site:- <i>{SITES.get(site)}</i>",
+                    f"Không tìm thấy kết quả cho <i>{key}</i>\nTrang Torrent:- <i>{SITES.get(site)}</i>",
                 )
                 return
-            msg = f"<b>Found {min(search_results['total'], TELEGRAPH_LIMIT)}</b>"
+            msg = f"<b>Tìm thấy {min(search_results['total'], TELEGRAPH_LIMIT)}</b>"
             if method == "apitrend":
-                msg += f" <b>trending result(s)\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
+                msg += f" <b>kết quả xu hướng\nTrang Torrent:- <i>{SITES.get(site)}</i></b>"
             elif method == "apirecent":
                 msg += (
-                    f" <b>recent result(s)\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
+                    f" <b>kết quả gần đây\nTrang Torrent:- <i>{SITES.get(site)}</i></b>"
                 )
             else:
-                msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{SITES.get(site)}</i></b>"
+                msg += f" <b>kết quả cho <i>{key}</i>\nTrang Torrent:- <i>{SITES.get(site)}</i></b>"
             search_results = search_results["data"]
         except Exception as e:
             await edit_message(message, str(e))
@@ -120,15 +120,15 @@ async def search(key, site, message, method):
         if total_results == 0:
             await edit_message(
                 message,
-                f"No result found for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i>",
+                f"Không tìm thấy kết quả cho <i>{key}</i>\nTrang Torrent:- <i>{site.capitalize()}</i>",
             )
             return
-        msg = f"<b>Found {min(total_results, TELEGRAPH_LIMIT)}</b>"
-        msg += f" <b>result(s) for <i>{key}</i>\nTorrent Site:- <i>{site.capitalize()}</i></b>"
+        msg = f"<b>Tìm thấy {min(total_results, TELEGRAPH_LIMIT)}</b>"
+        msg += f" <b>kết quả cho <i>{key}</i>\nTrang Torrent:- <i>{site.capitalize()}</i></b>"
         await sync_to_async(qbittorrent_client.search_delete, search_id=search_id)
     link = await get_result(search_results, key, message, method)
     buttons = ButtonMaker()
-    buttons.url_button("🔎 VIEW", link)
+    buttons.url_button("🔎 XEM", link)
     button = buttons.build_menu(1)
     await edit_message(message, msg, button)
 
@@ -136,13 +136,13 @@ async def search(key, site, message, method):
 async def get_result(search_results, key, message, method):
     telegraph_content = []
     if method == "apirecent":
-        msg = "<h4>API Recent Results</h4>"
+        msg = "<h4>Kết quả gần đây từ API</h4>"
     elif method == "apisearch":
-        msg = f"<h4>API Search Result(s) For {key}</h4>"
+        msg = f"<h4>Kết quả tìm kiếm từ API cho {key}</h4>"
     elif method == "apitrend":
-        msg = "<h4>API Trending Results</h4>"
+        msg = "<h4>Kết quả xu hướng từ API</h4>"
     else:
-        msg = f"<h4>PLUGINS Search Result(s) For {key}</h4>"
+        msg = f"<h4>Kết quả tìm kiếm từ PLUGINS cho {key}</h4>"
     for index, result in enumerate(search_results, start=1):
         if method.startswith("api"):
             try:
@@ -150,24 +150,24 @@ async def get_result(search_results, key, message, method):
                     msg += f"<code><a href='{result['url']}'>{escape(result['name'])}</a></code><br>"
                 if "torrents" in result.keys():
                     for subres in result["torrents"]:
-                        msg += f"<b>Quality: </b>{subres['quality']} | <b>Type: </b>{subres['type']} | "
-                        msg += f"<b>Size: </b>{subres['size']}<br>"
+                        msg += f"<b>Chất lượng: </b>{subres['quality']} | <b>Loại: </b>{subres['type']} | "
+                        msg += f"<b>Kích thước: </b>{subres['size']}<br>"
                         if "torrent" in subres.keys():
-                            msg += f"<a href='{subres['torrent']}'>Direct Link</a><br>"
+                            msg += f"<a href='{subres['torrent']}'>Link trực tiếp</a><br>"
                         elif "magnet" in subres.keys():
-                            msg += "<b>Share Magnet to</b> "
+                            msg += "<b>Chia sẻ Magnet đến</b> "
                             msg += f"<a href='http://t.me/share/url?url={subres['magnet']}'>Telegram</a><br>"
                     msg += "<br>"
                 else:
-                    msg += f"<b>Size: </b>{result['size']}<br>"
+                    msg += f"<b>Kích thước: </b>{result['size']}<br>"
                     try:
                         msg += f"<b>Seeders: </b>{result['seeders']} | <b>Leechers: </b>{result['leechers']}<br>"
                     except:
                         pass
                     if "torrent" in result.keys():
-                        msg += f"<a href='{result['torrent']}'>Direct Link</a><br><br>"
+                        msg += f"<a href='{result['torrent']}'>Link trực tiếp</a><br><br>"
                     elif "magnet" in result.keys():
-                        msg += "<b>Share Magnet to</b> "
+                        msg += "<b>Chia sẻ Magnet đến</b> "
                         msg += f"<a href='http://t.me/share/url?url={quote(result['magnet'])}'>Telegram</a><br><br>"
                     else:
                         msg += "<br>"
@@ -175,13 +175,13 @@ async def get_result(search_results, key, message, method):
                 continue
         else:
             msg += f"<a href='{result.descrLink}'>{escape(result.fileName)}</a><br>"
-            msg += f"<b>Size: </b>{get_readable_file_size(result.fileSize)}<br>"
+            msg += f"<b>Kích thước: </b>{get_readable_file_size(result.fileSize)}<br>"
             msg += f"<b>Seeders: </b>{result.nbSeeders} | <b>Leechers: </b>{result.nbLeechers}<br>"
             link = result.fileUrl
             if link.startswith("magnet:"):
-                msg += f"<b>Share Magnet to</b> <a href='http://t.me/share/url?url={quote(link)}'>Telegram</a><br><br>"
+                msg += f"<b>Chia sẻ Magnet đến</b> <a href='http://t.me/share/url?url={quote(link)}'>Telegram</a><br><br>"
             else:
-                msg += f"<a href='{link}'>Direct Link</a><br><br>"
+                msg += f"<a href='{link}'>Link trực tiếp</a><br><br>"
 
         if len(msg.encode("utf-8")) > 39000:
             telegraph_content.append(msg)
@@ -194,7 +194,7 @@ async def get_result(search_results, key, message, method):
         telegraph_content.append(msg)
 
     await edit_message(
-        message, f"<b>Creating</b> {len(telegraph_content)} <b>Telegraph pages.</b>"
+        message, f"<b>Đang tạo</b> {len(telegraph_content)} <b>trang Telegraph.</b>"
     )
     path = [
         (

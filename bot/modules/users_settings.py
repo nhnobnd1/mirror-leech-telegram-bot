@@ -54,7 +54,7 @@ async def get_user_settings(from_user):
     else:
         ltype = "MEDIA"
 
-    thumbmsg = "Exists" if await aiopath.exists(thumbpath) else "Not Exists"
+    thumbmsg = "Tồn tại" if await aiopath.exists(thumbpath) else "Không tồn tại"
 
     if user_dict.get("split_size", False):
         split_size = user_dict["split_size"]
@@ -66,32 +66,32 @@ async def get_user_settings(from_user):
         or "equal_splits" not in user_dict
         and config_dict["EQUAL_SPLITS"]
     ):
-        equal_splits = "Enabled"
+        equal_splits = "Đã bật"
     else:
-        equal_splits = "Disabled"
+        equal_splits = "Đã tắt"
 
     if (
         user_dict.get("media_group", False)
         or "media_group" not in user_dict
         and config_dict["MEDIA_GROUP"]
     ):
-        media_group = "Enabled"
+        media_group = "Đã bật"
     else:
-        media_group = "Disabled"
+        media_group = "Đã tắt"
 
     if user_dict.get("lprefix", False):
         lprefix = user_dict["lprefix"]
     elif "lprefix" not in user_dict and config_dict["LEECH_FILENAME_PREFIX"]:
         lprefix = config_dict["LEECH_FILENAME_PREFIX"]
     else:
-        lprefix = "None"
+        lprefix = "Không có"
 
     if user_dict.get("leech_dest", False):
         leech_dest = user_dict["leech_dest"]
     elif "leech_dest" not in user_dict and config_dict["LEECH_DUMP_CHAT"]:
         leech_dest = config_dict["LEECH_DUMP_CHAT"]
     else:
-        leech_dest = "None"
+        leech_dest = "Không có"
 
     if (
         IS_PREMIUM_USER
@@ -109,102 +109,102 @@ async def get_user_settings(from_user):
         or "mixed_leech" not in user_dict
         and config_dict["MIXED_LEECH"]
     ):
-        mixed_leech = "Enabled"
+        mixed_leech = "Đã bật"
     else:
-        mixed_leech = "Disabled"
+        mixed_leech = "Đã tắt"
 
     if user_dict.get("thumb_layout", False):
         thumb_layout = user_dict["thumb_layout"]
     elif "thumb_layout" not in user_dict and config_dict["THUMBNAIL_LAYOUT"]:
         thumb_layout = config_dict["THUMBNAIL_LAYOUT"]
     else:
-        thumb_layout = "None"
+        thumb_layout = "Không có"
 
     buttons.data_button("Leech", f"userset {user_id} leech")
 
     buttons.data_button("Rclone", f"userset {user_id} rclone")
-    rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
+    rccmsg = "Tồn tại" if await aiopath.exists(rclone_conf) else "Không tồn tại"
     if user_dict.get("rclone_path", False):
         rccpath = user_dict["rclone_path"]
     elif RP := config_dict["RCLONE_PATH"]:
         rccpath = RP
     else:
-        rccpath = "None"
+        rccpath = "Không có"
 
-    buttons.data_button("Gdrive Tools", f"userset {user_id} gdrive")
-    tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
+    buttons.data_button("Công cụ Gdrive", f"userset {user_id} gdrive")
+    tokenmsg = "Tồn tại" if await aiopath.exists(token_pickle) else "Không tồn tại"
     if user_dict.get("gdrive_id", False):
         gdrive_id = user_dict["gdrive_id"]
     elif GI := config_dict["GDRIVE_ID"]:
         gdrive_id = GI
     else:
-        gdrive_id = "None"
-    index = user_dict["index_url"] if user_dict.get("index_url", False) else "None"
+        gdrive_id = "Không có"
+    index = user_dict["index_url"] if user_dict.get("index_url", False) else "Không có"
     if (
         user_dict.get("stop_duplicate", False)
         or "stop_duplicate" not in user_dict
         and config_dict["STOP_DUPLICATE"]
     ):
-        sd_msg = "Enabled"
+        sd_msg = "Đã bật"
     else:
-        sd_msg = "Disabled"
+        sd_msg = "Đã tắt"
 
-    upload_paths = "Added" if user_dict.get("upload_paths", False) else "None"
-    buttons.data_button("Upload Paths", f"userset {user_id} upload_paths")
+    upload_paths = "Đã thêm" if user_dict.get("upload_paths", False) else "Không có"
+    buttons.data_button("Đường dẫn tải lên", f"userset {user_id} upload_paths")
 
     default_upload = (
         user_dict.get("default_upload", "") or config_dict["DEFAULT_UPLOAD"]
     )
-    du = "Gdrive API" if default_upload == "gd" else "Rclone"
-    dub = "Gdrive API" if default_upload != "gd" else "Rclone"
-    buttons.data_button(f"Upload using {dub}", f"userset {user_id} {default_upload}")
+    du = "API Gdrive" if default_upload == "gd" else "Rclone"
+    dub = "API Gdrive" if default_upload != "gd" else "Rclone"
+    buttons.data_button(f"Tải lên bằng {dub}", f"userset {user_id} {default_upload}")
 
-    buttons.data_button("Excluded Extensions", f"userset {user_id} ex_ex")
+    buttons.data_button("Phần mở rộng loại trừ", f"userset {user_id} ex_ex")
     if user_dict.get("excluded_extensions", False):
         ex_ex = user_dict["excluded_extensions"]
     elif "excluded_extensions" not in user_dict and global_extension_filter:
         ex_ex = global_extension_filter
     else:
-        ex_ex = "None"
+        ex_ex = "Không có"
 
-    ns_msg = "Added" if user_dict.get("name_sub", False) else "None"
-    buttons.data_button("Name Subtitute", f"userset {user_id} name_substitute")
+    ns_msg = "Đã thêm" if user_dict.get("name_sub", False) else "Không có"
+    buttons.data_button("Thay thế tên", f"userset {user_id} name_substitute")
 
-    buttons.data_button("YT-DLP Options", f"userset {user_id} yto")
+    buttons.data_button("Tùy chọn YT-DLP", f"userset {user_id} yto")
     if user_dict.get("yt_opt", False):
         ytopt = user_dict["yt_opt"]
     elif "yt_opt" not in user_dict and (YTO := config_dict["YT_DLP_OPTIONS"]):
         ytopt = YTO
     else:
-        ytopt = "None"
+        ytopt = "Không có"
 
     if user_dict:
-        buttons.data_button("Reset All", f"userset {user_id} reset")
+        buttons.data_button("Đặt lại tất cả", f"userset {user_id} reset")
 
-    buttons.data_button("Close", f"userset {user_id} close")
+    buttons.data_button("Đóng", f"userset {user_id} close")
 
-    text = f"""<u>Settings for {name}</u>
-Leech Type is <b>{ltype}</b>
-Custom Thumbnail <b>{thumbmsg}</b>
-Leech Split Size is <b>{split_size}</b>
-Equal Splits is <b>{equal_splits}</b>
-Media Group is <b>{media_group}</b>
-Leech Prefix is <code>{escape(lprefix)}</code>
-Leech Destination is <code>{leech_dest}</code>
-Leech by <b>{leech_method}</b> session
-Mixed Leech is <b>{mixed_leech}</b>
-Thumbnail Layout is <b>{thumb_layout}</b>
-Rclone Config <b>{rccmsg}</b>
-Rclone Path is <code>{rccpath}</code>
-Gdrive Token <b>{tokenmsg}</b>
-Upload Paths is <b>{upload_paths}</b>
-Gdrive ID is <code>{gdrive_id}</code>
-Index Link is <code>{index}</code>
-Stop Duplicate is <b>{sd_msg}</b>
-Default Upload is <b>{du}</b>
-Name substitution is <b>{ns_msg}</b>
-Excluded Extensions is <code>{ex_ex}</code>
-YT-DLP Options is <b><code>{escape(ytopt)}</code></b>"""
+    text = f"""<u>Cài đặt cho {name}</u>
+Loại Leech là <b>{ltype}</b>
+Hình thu nhỏ tùy chỉnh <b>{thumbmsg}</b>
+Kích thước phân chia Leech là <b>{split_size}</b>
+Phân chia bằng nhau là <b>{equal_splits}</b>
+Nhóm phương tiện là <b>{media_group}</b>
+Tiền tố Leech là <code>{escape(lprefix)}</code>
+Đích đến Leech là <code>{leech_dest}</code>
+Leech bởi phiên <b>{leech_method}</b>
+Leech hỗn hợp là <b>{mixed_leech}</b>
+Bố cục hình thu nhỏ là <b>{thumb_layout}</b>
+Cấu hình Rclone <b>{rccmsg}</b>
+Đường dẫn Rclone là <code>{rccpath}</code>
+Token Gdrive <b>{tokenmsg}</b>
+Đường dẫn tải lên là <b>{upload_paths}</b>
+Gdrive ID là <code>{gdrive_id}</code>
+Index Link là <code>{index}</code>
+Stop Duplicate là <b>{sd_msg}</b>
+Default Upload là <b>{du}</b>
+Name substitution là <b>{ns_msg}</b>
+Excluded Extensions là <code>{ex_ex}</code>
+YT-DLP Options là <b><code>{escape(ytopt)}</code></b>"""
 
     return text, buttons.build_menu(1)
 
@@ -414,7 +414,7 @@ async def edit_user_settings(client, query):
         thumbpath = f"Thumbnails/{user_id}.jpg"
         buttons = ButtonMaker()
         buttons.data_button("Thumbnail", f"userset {user_id} sthumb")
-        thumbmsg = "Exists" if await aiopath.exists(thumbpath) else "Not Exists"
+        thumbmsg = "Tồn tại" if await aiopath.exists(thumbpath) else "Không tồn tại"
         buttons.data_button("Leech Split Size", f"userset {user_id} lss")
         if user_dict.get("split_size", False):
             split_size = user_dict["split_size"]
@@ -426,14 +426,14 @@ async def edit_user_settings(client, query):
         elif "leech_dest" not in user_dict and config_dict["LEECH_DUMP_CHAT"]:
             leech_dest = config_dict["LEECH_DUMP_CHAT"]
         else:
-            leech_dest = "None"
+            leech_dest = "Không có"
         buttons.data_button("Leech Prefix", f"userset {user_id} leech_prefix")
         if user_dict.get("lprefix", False):
             lprefix = user_dict["lprefix"]
         elif "lprefix" not in user_dict and config_dict["LEECH_FILENAME_PREFIX"]:
             lprefix = config_dict["LEECH_FILENAME_PREFIX"]
         else:
-            lprefix = "None"
+            lprefix = "Không có"
         if (
             user_dict.get("as_doc", False)
             or "as_doc" not in user_dict
@@ -452,12 +452,12 @@ async def edit_user_settings(client, query):
             buttons.data_button(
                 "Disable Equal Splits", f"userset {user_id} equal_splits false"
             )
-            equal_splits = "Enabled"
+            equal_splits = "Đã bật"
         else:
             buttons.data_button(
                 "Enable Equal Splits", f"userset {user_id} equal_splits true"
             )
-            equal_splits = "Disabled"
+            equal_splits = "Đã tắt"
         if (
             user_dict.get("media_group", False)
             or "media_group" not in user_dict
@@ -466,12 +466,12 @@ async def edit_user_settings(client, query):
             buttons.data_button(
                 "Disable Media Group", f"userset {user_id} media_group false"
             )
-            media_group = "Enabled"
+            media_group = "Đã bật"
         else:
             buttons.data_button(
                 "Enable Media Group", f"userset {user_id} media_group true"
             )
-            media_group = "Disabled"
+            media_group = "Đã tắt"
         if (
             IS_PREMIUM_USER
             and user_dict.get("user_transmission", False)
@@ -496,17 +496,17 @@ async def edit_user_settings(client, query):
             or "mixed_leech" not in user_dict
             and config_dict["MIXED_LEECH"]
         ):
-            mixed_leech = "Enabled"
+            mixed_leech = "Đã bật"
             buttons.data_button(
                 "Disable Mixed Leech", f"userset {user_id} mixed_leech false"
             )
         elif IS_PREMIUM_USER:
-            mixed_leech = "Disabled"
+            mixed_leech = "Đã tắt"
             buttons.data_button(
                 "Enable Mixed Leech", f"userset {user_id} mixed_leech true"
             )
         else:
-            mixed_leech = "Disabled"
+            mixed_leech = "Đã tắt"
 
         buttons.data_button("Thumbnail Layout", f"userset {user_id} tlayout")
         if user_dict.get("thumb_layout", False):
@@ -514,21 +514,21 @@ async def edit_user_settings(client, query):
         elif "thumb_layout" not in user_dict and config_dict["THUMBNAIL_LAYOUT"]:
             thumb_layout = config_dict["THUMBNAIL_LAYOUT"]
         else:
-            thumb_layout = "None"
+            thumb_layout = "Không có"
 
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
         text = f"""<u>Leech Settings for {name}</u>
-Leech Type is <b>{ltype}</b>
-Custom Thumbnail <b>{thumbmsg}</b>
-Leech Split Size is <b>{split_size}</b>
-Equal Splits is <b>{equal_splits}</b>
-Media Group is <b>{media_group}</b>
-Leech Prefix is <code>{escape(lprefix)}</code>
-Leech Destination is <code>{leech_dest}</code>
-Leech by <b>{leech_method}</b> session
-Mixed Leech is <b>{mixed_leech}</b>
-Thumbnail Layout is <b>{thumb_layout}</b>
+Loại Leech là <b>{ltype}</b>
+Hình thu nhỏ tùy chỉnh <b>{thumbmsg}</b>
+Kích thước phân chia Leech là <b>{split_size}</b>
+Phân chia bằng nhau là <b>{equal_splits}</b>
+Nhóm phương tiện là <b>{media_group}</b>
+Tiền tố Leech là <code>{escape(lprefix)}</code>
+Đích đến Leech là <code>{leech_dest}</code>
+Leech bởi phiên <b>{leech_method}</b>
+Leech hỗn hợp là <b>{mixed_leech}</b>
+Bố cục hình thu nhỏ là <b>{thumb_layout}</b>
 """
         await edit_message(message, text, buttons.build_menu(2))
     elif data[2] == "rclone":
@@ -538,13 +538,13 @@ Thumbnail Layout is <b>{thumb_layout}</b>
         buttons.data_button("Default Rclone Path", f"userset {user_id} rcp")
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
-        rccmsg = "Exists" if await aiopath.exists(rclone_conf) else "Not Exists"
+        rccmsg = "Tồn tại" if await aiopath.exists(rclone_conf) else "Không tồn tại"
         if user_dict.get("rclone_path", False):
             rccpath = user_dict["rclone_path"]
         elif RP := config_dict["RCLONE_PATH"]:
             rccpath = RP
         else:
-            rccpath = "None"
+            rccpath = "Không có"
         text = f"""<u>Rclone Settings for {name}</u>
 Rclone Config <b>{rccmsg}</b>
 Rclone Path is <code>{rccpath}</code>"""
@@ -563,22 +563,22 @@ Rclone Path is <code>{rccpath}</code>"""
             buttons.data_button(
                 "Disable Stop Duplicate", f"userset {user_id} stop_duplicate false"
             )
-            sd_msg = "Enabled"
+            sd_msg = "Đã bật"
         else:
             buttons.data_button(
                 "Enable Stop Duplicate", f"userset {user_id} stop_duplicate true"
             )
-            sd_msg = "Disabled"
+            sd_msg = "Đã tắt"
         buttons.data_button("Back", f"userset {user_id} back")
         buttons.data_button("Close", f"userset {user_id} close")
-        tokenmsg = "Exists" if await aiopath.exists(token_pickle) else "Not Exists"
+        tokenmsg = "Tồn tại" if await aiopath.exists(token_pickle) else "Không tồn tại"
         if user_dict.get("gdrive_id", False):
             gdrive_id = user_dict["gdrive_id"]
         elif GDID := config_dict["GDRIVE_ID"]:
             gdrive_id = GDID
         else:
-            gdrive_id = "None"
-        index = user_dict["index_url"] if user_dict.get("index_url", False) else "None"
+            gdrive_id = "Không có"
+        index = user_dict["index_url"] if user_dict.get("index_url", False) else "Không có"
         text = f"""<u>Gdrive Tools Settings for {name}</u>
 Gdrive Token <b>{tokenmsg}</b>
 Gdrive ID is <code>{gdrive_id}</code>

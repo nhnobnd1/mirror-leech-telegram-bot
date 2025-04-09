@@ -163,80 +163,80 @@ Thời gian chờ: 60 giây"""
         for k in list(aria2_options.keys())[start : 10 + start]:
             buttons.data_button(k, f"botset ariavar {k}")
         if state == "view":
-            buttons.data_button("Edit", "botset edit aria")
+            buttons.data_button("Chỉnh sửa", "botset edit aria")
         else:
-            buttons.data_button("View", "botset view aria")
-        buttons.data_button("Add new key", "botset ariavar newkey")
-        buttons.data_button("Back", "botset back")
-        buttons.data_button("Close", "botset close")
+            buttons.data_button("Xem", "botset view aria")
+        buttons.data_button("Thêm khóa mới", "botset ariavar newkey")
+        buttons.data_button("Quay lại", "botset back")
+        buttons.data_button("Đóng", "botset close")
         for x in range(0, len(aria2_options), 10):
             buttons.data_button(
                 f"{int(x / 10)}", f"botset start aria {x}", position="footer"
             )
-        msg = f"Aria2c Options | Page: {int(start / 10)} | State: {state}"
+        msg = f"Tùy chọn Aria2c | Trang: {int(start / 10)} | Trạng thái: {state}"
     elif key == "qbit":
         for k in list(qbit_options.keys())[start : 10 + start]:
             buttons.data_button(k, f"botset qbitvar {k}")
         if state == "view":
-            buttons.data_button("Edit", "botset edit qbit")
+            buttons.data_button("Chỉnh sửa", "botset edit qbit")
         else:
-            buttons.data_button("View", "botset view qbit")
-        buttons.data_button("Sync Qbittorrent", "botset syncqbit")
-        buttons.data_button("Back", "botset back")
-        buttons.data_button("Close", "botset close")
+            buttons.data_button("Xem", "botset view qbit")
+        buttons.data_button("Đồng bộ Qbittorrent", "botset syncqbit")
+        buttons.data_button("Quay lại", "botset back")
+        buttons.data_button("Đóng", "botset close")
         for x in range(0, len(qbit_options), 10):
             buttons.data_button(
                 f"{int(x / 10)}", f"botset start qbit {x}", position="footer"
             )
-        msg = f"Qbittorrent Options | Page: {int(start / 10)} | State: {state}"
+        msg = f"Tùy chọn Qbittorrent | Trang: {int(start / 10)} | Trạng thái: {state}"
     elif key == "nzb":
         for k in list(nzb_options.keys())[start : 10 + start]:
             buttons.data_button(k, f"botset nzbvar {k}")
         if state == "view":
-            buttons.data_button("Edit", "botset edit nzb")
+            buttons.data_button("Chỉnh sửa", "botset edit nzb")
         else:
-            buttons.data_button("View", "botset view nzb")
-        buttons.data_button("Servers", "botset nzbserver")
-        buttons.data_button("Sync Sabnzbd", "botset syncnzb")
-        buttons.data_button("Back", "botset back")
-        buttons.data_button("Close", "botset close")
+            buttons.data_button("Xem", "botset view nzb")
+        buttons.data_button("Máy chủ", "botset nzbserver")
+        buttons.data_button("Đồng bộ Sabnzbd", "botset syncnzb")
+        buttons.data_button("Quay lại", "botset back")
+        buttons.data_button("Đóng", "botset close")
         for x in range(0, len(nzb_options), 10):
             buttons.data_button(
                 f"{int(x / 10)}", f"botset start nzb {x}", position="footer"
             )
-        msg = f"Sabnzbd Options | Page: {int(start / 10)} | State: {state}"
+        msg = f"Tùy chọn Sabnzbd | Trang: {int(start / 10)} | Trạng thái: {state}"
     elif key == "nzbserver":
         if len(config_dict["USENET_SERVERS"]) > 0:
             for index, k in enumerate(
                 config_dict["USENET_SERVERS"][start : 10 + start]
             ):
                 buttons.data_button(k["name"], f"botset nzbser{index}")
-        buttons.data_button("Add New", "botset nzbsevar newser")
-        buttons.data_button("Back", "botset nzb")
-        buttons.data_button("Close", "botset close")
+        buttons.data_button("Thêm mới", "botset nzbsevar newser")
+        buttons.data_button("Quay lại", "botset nzb")
+        buttons.data_button("Đóng", "botset close")
         if len(config_dict["USENET_SERVERS"]) > 10:
             for x in range(0, len(config_dict["USENET_SERVERS"]), 10):
                 buttons.data_button(
                     f"{int(x / 10)}", f"botset start nzbser {x}", position="footer"
                 )
-        msg = f"Usenet Servers | Page: {int(start / 10)} | State: {state}"
+        msg = f"Máy chủ Usenet | Trang: {int(start / 10)} | Trạng thái: {state}"
     elif key.startswith("nzbser"):
         index = int(key.replace("nzbser", ""))
         for k in list(config_dict["USENET_SERVERS"][index].keys())[start : 10 + start]:
             buttons.data_button(k, f"botset nzbsevar{index} {k}")
         if state == "view":
-            buttons.data_button("Edit", f"botset edit {key}")
+            buttons.data_button("Chỉnh sửa", f"botset edit {key}")
         else:
-            buttons.data_button("View", f"botset view {key}")
-        buttons.data_button("Remove Server", f"botset remser {index}")
-        buttons.data_button("Back", "botset nzbserver")
-        buttons.data_button("Close", "botset close")
+            buttons.data_button("Xem", f"botset view {key}")
+        buttons.data_button("Xóa máy chủ", f"botset remser {index}")
+        buttons.data_button("Quay lại", "botset nzbserver")
+        buttons.data_button("Đóng", "botset close")
         if len(config_dict["USENET_SERVERS"][index].keys()) > 10:
             for x in range(0, len(config_dict["USENET_SERVERS"][index]), 10):
                 buttons.data_button(
                     f"{int(x / 10)}", f"botset start {key} {x}", position="footer"
                 )
-        msg = f"Server Keys | Page: {int(start / 10)} | State: {state}"
+        msg = f"Khóa máy chủ | Trang: {int(start / 10)} | Trạng thái: {state}"
 
     button = buttons.build_menu(1) if key is None else buttons.build_menu(2)
     return msg, button
