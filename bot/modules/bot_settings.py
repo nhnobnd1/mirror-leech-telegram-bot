@@ -78,21 +78,21 @@ DEFAULT_VALUES = {
 async def get_buttons(key=None, edit_type=None):
     buttons = ButtonMaker()
     if key is None:
-        buttons.data_button("Config Variables", "botset var")
-        buttons.data_button("Private Files", "botset private")
-        buttons.data_button("Qbit Settings", "botset qbit")
-        buttons.data_button("Aria2c Settings", "botset aria")
-        buttons.data_button("Sabnzbd Settings", "botset nzb")
-        buttons.data_button("JDownloader Sync", "botset syncjd")
-        buttons.data_button("Close", "botset close")
-        msg = "Bot Settings:"
+        buttons.data_button("Cấu hình Biến", "botset var")
+        buttons.data_button("Tập tin riêng tư", "botset private")
+        buttons.data_button("Cấu hình Qbit", "botset qbit")
+        buttons.data_button("Cấu hình Aria2c", "botset aria")
+        buttons.data_button("Cấu hình Sabnzbd", "botset nzb")
+        buttons.data_button("Đồng bộ JDownloader", "botset syncjd")
+        buttons.data_button("Đóng", "botset close")
+        msg = "Cấu hình Bot:"
     elif edit_type is not None:
         if edit_type == "botvar":
             msg = ""
-            buttons.data_button("Back", "botset var")
+            buttons.data_button("Quay lại", "botset var")
             if key not in ["TELEGRAM_HASH", "TELEGRAM_API", "OWNER_ID", "BOT_TOKEN"]:
-                buttons.data_button("Default", f"botset resetvar {key}")
-            buttons.data_button("Close", "botset close")
+                buttons.data_button("Mặc định", f"botset resetvar {key}")
+            buttons.data_button("Đóng", "botset close")
             if key in [
                 "SUDO_USERS",
                 "CMD_SUFFIX",
@@ -104,61 +104,61 @@ async def get_buttons(key=None, edit_type=None):
                 "BOT_TOKEN",
                 "DOWNLOAD_DIR",
             ]:
-                msg += "Restart required for this edit to take effect!\n\n"
-            msg += f"Send a valid value for {key}. Current value is '{config_dict[key]}'. Timeout: 60 sec"
+                msg += "Cần khởi động lại để hiệu lực này!\n\n"
+            msg += f"Gửi một giá trị hợp lệ cho {key}. Giá trị hiện tại là '{config_dict[key]}'. Thời gian chờ: 60 giây"
         elif edit_type == "ariavar":
-            buttons.data_button("Back", "botset aria")
+            buttons.data_button("Quay lại", "botset aria")
             if key != "newkey":
-                buttons.data_button("Default", f"botset resetaria {key}")
-                buttons.data_button("Empty String", f"botset emptyaria {key}")
-            buttons.data_button("Close", "botset close")
+                buttons.data_button("Mặc định", f"botset resetaria {key}")
+                buttons.data_button("Chuỗi rỗng", f"botset emptyaria {key}")
+            buttons.data_button("Đóng", "botset close")
             msg = (
-                "Send a key with value. Example: https-proxy-user:value. Timeout: 60 sec"
+                "Gửi một khóa với giá trị. Ví dụ: https-proxy-user:value. Thời gian chờ: 60 giây"
                 if key == "newkey"
-                else f"Send a valid value for {key}. Current value is '{aria2_options[key]}'. Timeout: 60 sec"
+                else f"Gửi một giá trị hợp lệ cho {key}. Giá trị hiện tại là '{aria2_options[key]}'. Thời gian chờ: 60 giây"
             )
         elif edit_type == "qbitvar":
-            buttons.data_button("Back", "botset qbit")
-            buttons.data_button("Empty String", f"botset emptyqbit {key}")
-            buttons.data_button("Close", "botset close")
-            msg = f"Send a valid value for {key}. Current value is '{qbit_options[key]}'. Timeout: 60 sec"
+            buttons.data_button("Quay lại", "botset qbit")
+            buttons.data_button("Chuỗi rỗng", f"botset emptyqbit {key}")
+            buttons.data_button("Đóng", "botset close")
+            msg = f"Gửi một giá trị hợp lệ cho {key}. Giá trị hiện tại là '{qbit_options[key]}'. Thời gian chờ: 60 giây"
         elif edit_type == "nzbvar":
-            buttons.data_button("Back", "botset nzb")
-            buttons.data_button("Default", f"botset resetnzb {key}")
-            buttons.data_button("Empty String", f"botset emptynzb {key}")
-            buttons.data_button("Close", "botset close")
-            msg = f"Send a valid value for {key}. Current value is '{nzb_options[key]}'.\nIf the value is list then seperate them by space or ,\nExample: .exe,info or .exe .info\nTimeout: 60 sec"
+            buttons.data_button("Quay lại", "botset nzb")
+            buttons.data_button("Mặc định", f"botset resetnzb {key}")
+            buttons.data_button("Chuỗi rỗng", f"botset emptynzb {key}")
+            buttons.data_button("Đóng", "botset close")
+            msg = f"Gửi một giá trị hợp lệ cho {key}. Giá trị hiện tại là '{nzb_options[key]}'.\nNếu giá trị là danh sách thì hãy phân tách chúng bằng dấu cách hoặc ,\nVí dụ: .exe,info hoặc .exe .info\nThời gian chờ: 60 giây"
         elif edit_type.startswith("nzbsevar"):
             index = 0 if key == "newser" else int(edit_type.replace("nzbsevar", ""))
-            buttons.data_button("Back", f"botset nzbser{index}")
+            buttons.data_button("Quay lại", f"botset nzbser{index}")
             if key != "newser":
-                buttons.data_button("Empty", f"botset emptyserkey {index} {key}")
-            buttons.data_button("Close", "botset close")
+                buttons.data_button("Rỗng", f"botset emptyserkey {index} {key}")
+            buttons.data_button("Đóng", "botset close")
             if key == "newser":
-                msg = "Send one server as dictionary {}, like in config.env without []. Timeout: 60 sec"
+                msg = "Gửi một máy chủ dưới dạng từ điển {}, giống như trong config.env không có []. Thời gian chờ: 60 giây"
             else:
-                msg = f"Send a valid value for {key} in server {config_dict['USENET_SERVERS'][index]['name']}. Current value is '{config_dict['USENET_SERVERS'][index][key]}. Timeout: 60 sec"
+                msg = f"Gửi một giá trị hợp lệ cho {key} trong máy chủ {config_dict['USENET_SERVERS'][index]['name']}. Giá trị hiện tại là '{config_dict['USENET_SERVERS'][index][key]}. Thời gian chờ: 60 giây"
     elif key == "var":
         for k in list(config_dict.keys())[start : 10 + start]:
             buttons.data_button(k, f"botset botvar {k}")
         if state == "view":
-            buttons.data_button("Edit", "botset edit var")
+            buttons.data_button("Chỉnh sửa", "botset edit var")
         else:
-            buttons.data_button("View", "botset view var")
-        buttons.data_button("Back", "botset back")
-        buttons.data_button("Close", "botset close")
+            buttons.data_button("Xem", "botset view var")
+        buttons.data_button("Quay lại", "botset back")
+        buttons.data_button("Đóng", "botset close")
         for x in range(0, len(config_dict), 10):
             buttons.data_button(
                 f"{int(x / 10)}", f"botset start var {x}", position="footer"
             )
-        msg = f"Config Variables | Page: {int(start / 10)} | State: {state}"
+        msg = f"Biến cấu hình | Trang: {int(start / 10)} | Trạng thái: {state}"
     elif key == "private":
-        buttons.data_button("Back", "botset back")
-        buttons.data_button("Close", "botset close")
-        msg = """Send private file: config.env, token.pickle, rclone.conf, accounts.zip, list_drives.txt, cookies.txt, .netrc or any other private file!
-To delete private file send only the file name as text message.
-Note: Changing .netrc will not take effect for aria2c until restart.
-Timeout: 60 sec"""
+        buttons.data_button("Quay lại", "botset back")
+        buttons.data_button("Đóng", "botset close")
+        msg = """Gửi tập tin riêng tư: config.env, token.pickle, rclone.conf, accounts.zip, list_drives.txt, cookies.txt, .netrc hoặc bất kỳ tập tin riêng tư nào khác!
+Để xóa tập tin riêng tư, chỉ cần gửi tên tập tin dưới dạng tin nhắn văn bản.
+Lưu ý: Thay đổi .netrc sẽ không có hiệu lực đối với aria2c cho đến khi khởi động lại.
+Thời gian chờ: 60 giây"""
     elif key == "aria":
         for k in list(aria2_options.keys())[start : 10 + start]:
             buttons.data_button(k, f"botset ariavar {k}")

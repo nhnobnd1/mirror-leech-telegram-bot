@@ -39,10 +39,10 @@ async def mirror_status(_, message):
     if count == 0:
         currentTime = get_readable_time(time() - botStartTime)
         free = get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)
-        msg = f"No Active Tasks!\nEach user can get status for his tasks by adding me or user_id after cmd: /{BotCommands.StatusCommand} me"
+        msg = f"Không có tác vụ đang hoạt động!\nMỗi người dùng có thể nhận trạng thái cho các tác vụ của mình bằng cách thêm tôi hoặc user_id sau lệnh: /{BotCommands.StatusCommand} me"
         msg += (
-            f"\n<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {free}"
-            f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {currentTime}"
+            f"\n<b>CPU:</b> {cpu_percent()}% | <b>TRỐNG:</b> {free}"
+            f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>THỜI GIAN HOẠT ĐỘNG:</b> {currentTime}"
         )
         reply_message = await send_message(message, msg)
         await auto_delete_message(message, reply_message)
@@ -139,17 +139,17 @@ async def status_pages(_, query):
                         tasks["Download"] += 1
                         dl_speed += speed_string_to_bytes(download.speed())
 
-        msg = f"""<b>DL:</b> {tasks['Download']} | <b>UP:</b> {tasks['Upload']} | <b>SD:</b> {tasks['Seed']} | <b>AR:</b> {tasks['Archive']}
-<b>EX:</b> {tasks['Extract']} | <b>SP:</b> {tasks['Split']} | <b>QD:</b> {tasks['QueueDl']} | <b>QU:</b> {tasks['QueueUp']}
-<b>CL:</b> {tasks['Clone']} | <b>CK:</b> {tasks['CheckUp']} | <b>PA:</b> {tasks['Pause']} | <b>SV:</b> {tasks['SamVid']}
-<b>CM:</b> {tasks['ConvertMedia']}
+        msg = f"""<b>TẢI XUỐNG:</b> {tasks['Download']} | <b>TẢI LÊN:</b> {tasks['Upload']} | <b>CHIA SẺ:</b> {tasks['Seed']} | <b>LƯU TRỮ:</b> {tasks['Archive']}
+<b>GIẢI NÉN:</b> {tasks['Extract']} | <b>CHIA NHỎ:</b> {tasks['Split']} | <b>HÀNG ĐỢI TẢI XUỐNG:</b> {tasks['QueueDl']} | <b>HÀNG ĐỢI TẢI LÊN:</b> {tasks['QueueUp']}
+<b>NHÂN BẢN:</b> {tasks['Clone']} | <b>KIỂM TRA:</b> {tasks['CheckUp']} | <b>TẠM DỪNG:</b> {tasks['Pause']} | <b>VIDEO MẪU:</b> {tasks['SamVid']}
+<b>CHUYỂN ĐỔI:</b> {tasks['ConvertMedia']}
 
-<b>ODLS:</b> {get_readable_file_size(dl_speed)}/s
-<b>OULS:</b> {get_readable_file_size(up_speed)}/s
-<b>OSDS:</b> {get_readable_file_size(seed_speed)}/s
+<b>TỐC ĐỘ TẢI XUỐNG TỔNG:</b> {get_readable_file_size(dl_speed)}/s
+<b>TỐC ĐỘ TẢI LÊN TỔNG:</b> {get_readable_file_size(up_speed)}/s
+<b>TỐC ĐỘ CHIA SẺ TỔNG:</b> {get_readable_file_size(seed_speed)}/s
 """
         button = ButtonMaker()
-        button.data_button("Back", f"status {data[1]} ref")
+        button.data_button("Quay lại", f"status {data[1]} ref")
         await edit_message(message, msg, button.build_menu())
 
 

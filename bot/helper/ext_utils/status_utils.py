@@ -18,23 +18,23 @@ SIZE_UNITS = ["B", "KB", "MB", "GB", "TB", "PB"]
 
 
 class MirrorStatus:
-    STATUS_UPLOADING = "Upload"
-    STATUS_DOWNLOADING = "Download"
-    STATUS_CLONING = "Clone"
-    STATUS_QUEUEDL = "QueueDl"
-    STATUS_QUEUEUP = "QueueUp"
-    STATUS_PAUSED = "Pause"
-    STATUS_ARCHIVING = "Archive"
-    STATUS_EXTRACTING = "Extract"
-    STATUS_SPLITTING = "Split"
-    STATUS_CHECKING = "CheckUp"
-    STATUS_SEEDING = "Seed"
-    STATUS_SAMVID = "SamVid"
-    STATUS_CONVERTING = "Convert"
+    STATUS_UPLOADING = "Tải lên"
+    STATUS_DOWNLOADING = "Tải xuống"
+    STATUS_CLONING = "Nhân bản"
+    STATUS_QUEUEDL = "Hàng đợi TLXuống"
+    STATUS_QUEUEUP = "Hàng đợi TLLên"
+    STATUS_PAUSED = "Tạm dừng"
+    STATUS_ARCHIVING = "Lưu trữ"
+    STATUS_EXTRACTING = "Giải nén"
+    STATUS_SPLITTING = "Chia nhỏ"
+    STATUS_CHECKING = "Kiểm tra"
+    STATUS_SEEDING = "Chia sẻ"
+    STATUS_SAMVID = "Video mẫu"
+    STATUS_CONVERTING = "Chuyển đổi"
 
 
 STATUSES = {
-    "ALL": "All",
+    "ALL": "Tất cả",
     "DL": MirrorStatus.STATUS_DOWNLOADING,
     "UP": MirrorStatus.STATUS_UPLOADING,
     "QD": MirrorStatus.STATUS_QUEUEDL,
@@ -186,33 +186,33 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
                 else task.progress()
             )
             msg += f"\n{get_progress_bar_string(progress)} {progress}"
-            msg += f"\n<b>Processed:</b> {task.processed_bytes()} of {task.size()}"
-            msg += f"\n<b>Speed:</b> {task.speed()} | <b>ETA:</b> {task.eta()}"
+            msg += f"\n<b>Đã xử lý:</b> {task.processed_bytes()} trên {task.size()}"
+            msg += f"\n<b>Tốc độ:</b> {task.speed()} | <b>ETA:</b> {task.eta()}"
             if hasattr(task, "seeders_num"):
                 try:
                     msg += f"\n<b>Seeders:</b> {task.seeders_num()} | <b>Leechers:</b> {task.leechers_num()}"
                 except:
                     pass
         elif tstatus == MirrorStatus.STATUS_SEEDING:
-            msg += f"\n<b>Size: </b>{task.size()}"
-            msg += f"\n<b>Speed: </b>{task.seed_speed()}"
-            msg += f" | <b>Uploaded: </b>{task.uploaded_bytes()}"
-            msg += f"\n<b>Ratio: </b>{task.ratio()}"
-            msg += f" | <b>Time: </b>{task.seeding_time()}"
+            msg += f"\n<b>Kích thước: </b>{task.size()}"
+            msg += f"\n<b>Tốc độ: </b>{task.seed_speed()}"
+            msg += f" | <b>Đã tải lên: </b>{task.uploaded_bytes()}"
+            msg += f"\n<b>Tỷ lệ: </b>{task.ratio()}"
+            msg += f" | <b>Thời gian: </b>{task.seeding_time()}"
         else:
-            msg += f"\n<b>Size: </b>{task.size()}"
+            msg += f"\n<b>Kích thước: </b>{task.size()}"
         msg += f"\n<b>Gid: </b><code>{task.gid()}</code>\n\n"
 
     if len(msg) == 0:
         if status == "All":
             return None, None
         else:
-            msg = f"No Active {status} Tasks!\n\n"
+            msg = f"Không có tác vụ {status} đang hoạt động!\n\n"
     buttons = ButtonMaker()
     if not is_user:
         buttons.data_button("📜", f"status {sid} ov", position="header")
     if len(tasks) > STATUS_LIMIT:
-        msg += f"<b>Page:</b> {page_no}/{pages} | <b>Tasks:</b> {tasks_no} | <b>Step:</b> {page_step}\n"
+        msg += f"<b>Trang:</b> {page_no}/{pages} | <b>Tác vụ:</b> {tasks_no} | <b>Bước:</b> {page_step}\n"
         buttons.data_button("<<", f"status {sid} pre", position="header")
         buttons.data_button(">>", f"status {sid} nex", position="header")
         if tasks_no > 30:
@@ -224,6 +224,6 @@ async def get_readable_message(sid, is_user, page_no=1, status="All", page_step=
                 buttons.data_button(label, f"status {sid} st {status_value}")
     buttons.data_button("♻️", f"status {sid} ref", position="header")
     button = buttons.build_menu(8)
-    msg += f"<b>CPU:</b> {cpu_percent()}% | <b>FREE:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
-    msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>UPTIME:</b> {get_readable_time(time() - botStartTime)}"
+    msg += f"<b>CPU:</b> {cpu_percent()}% | <b>TRỐNG:</b> {get_readable_file_size(disk_usage(DOWNLOAD_DIR).free)}"
+    msg += f"\n<b>RAM:</b> {virtual_memory().percent}% | <b>THỜI GIAN HOẠT ĐỘNG:</b> {get_readable_time(time() - botStartTime)}"
     return msg, button

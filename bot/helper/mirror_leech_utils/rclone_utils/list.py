@@ -205,50 +205,50 @@ class RcloneList:
         if items_no > LIST_LIMIT:
             for i in [1, 2, 4, 6, 10, 30, 50, 100]:
                 buttons.data_button(i, f"rcq ps {i}", position="header")
-            buttons.data_button("Previous", "rcq pre", position="footer")
-            buttons.data_button("Next", "rcq nex", position="footer")
+            buttons.data_button("Trước", "rcq pre", position="footer")
+            buttons.data_button("Tiếp", "rcq nex", position="footer")
         if self.list_status == "rcd":
             if self.item_type == "--dirs-only":
                 buttons.data_button(
-                    "Files", "rcq itype --files-only", position="footer"
+                    "Tệp", "rcq itype --files-only", position="footer"
                 )
             else:
                 buttons.data_button(
-                    "Folders", "rcq itype --dirs-only", position="footer"
+                    "Thư mục", "rcq itype --dirs-only", position="footer"
                 )
         if self.list_status == "rcu" or len(self.path_list) > 0:
-            buttons.data_button("Choose Current Path", "rcq cur", position="footer")
+            buttons.data_button("Chọn đường dẫn hiện tại", "rcq cur", position="footer")
         if self.list_status == "rcd":
             buttons.data_button(
-                f"Select: {'Enabled' if self.select else 'Disabled'}",
+                f"Chọn: {'Đã bật' if self.select else 'Đã tắt'}",
                 "rcq select",
                 position="footer",
             )
         if len(self.selected_pathes) > 1:
-            buttons.data_button("Done With Selection", "rcq ds", position="footer")
-            buttons.data_button("Clear Selection", "rcq clear", position="footer")
+            buttons.data_button("Hoàn tất lựa chọn", "rcq ds", position="footer")
+            buttons.data_button("Xóa lựa chọn", "rcq clear", position="footer")
         if self.list_status == "rcu":
-            buttons.data_button("Set as Default Path", "rcq def", position="footer")
+            buttons.data_button("Đặt làm đường dẫn mặc định", "rcq def", position="footer")
         if self.path or len(self._sections) > 1 or self._rc_user and self._rc_owner:
-            buttons.data_button("Back", "rcq back pa", position="footer")
+            buttons.data_button("Quay lại", "rcq back pa", position="footer")
         if self.path:
-            buttons.data_button("Back To Root", "rcq root", position="footer")
-        buttons.data_button("Cancel", "rcq cancel", position="footer")
+            buttons.data_button("Về thư mục gốc", "rcq root", position="footer")
+        buttons.data_button("Hủy", "rcq cancel", position="footer")
         button = buttons.build_menu(f_cols=2)
-        msg = "Choose Path:" + (
-            "\nTransfer Type: <i>Download</i>"
+        msg = "Chọn đường dẫn:" + (
+            "\nLoại chuyển: <i>Tải xuống</i>"
             if self.list_status == "rcd"
-            else "\nTransfer Type: <i>Upload</i>"
+            else "\nLoại chuyển: <i>Tải lên</i>"
         )
         if self.list_status == "rcu":
             default_path = config_dict["RCLONE_PATH"]
-            msg += f"\nDefault Rclone Path: {default_path}" if default_path else ""
-        msg += f"\n\nItems: {items_no}"
+            msg += f"\nĐường dẫn Rclone mặc định: {default_path}" if default_path else ""
+        msg += f"\n\nMục: {items_no}"
         if items_no > LIST_LIMIT:
-            msg += f" | Page: {int(page)}/{pages} | Page Step: {self.page_step}"
-        msg += f"\n\nItem Type: {self.item_type}\nConfig Path: {self.config_path}"
-        msg += f"\nCurrent Path: <code>{self.remote}{self.path}</code>"
-        msg += f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
+            msg += f" | Trang: {int(page)}/{pages} | Bước trang: {self.page_step}"
+        msg += f"\n\nLoại mục: {self.item_type}\nĐường dẫn cấu hình: {self.config_path}"
+        msg += f"\nĐường dẫn hiện tại: <code>{self.remote}{self.path}</code>"
+        msg += f"\nThời gian chờ: {get_readable_time(self._timeout - (time() - self._time))}"
         await self._send_list_message(msg, button)
 
     async def get_path(self, itype=""):
@@ -303,38 +303,38 @@ class RcloneList:
             self.remote = f"{self._sections[0]}:"
             await self.get_path()
         else:
-            msg = "Choose Rclone remote:" + (
-                "\nTransfer Type: <i>Download</i>"
+            msg = "Chọn remote Rclone:" + (
+                "\nLoại chuyển: <i>Tải xuống</i>"
                 if self.list_status == "rcd"
-                else "\nTransfer Type: <i>Upload</i>"
+                else "\nLoại chuyển: <i>Tải lên</i>"
             )
-            msg += f"\nConfig Path: {self.config_path}"
+            msg += f"\nĐường dẫn cấu hình: {self.config_path}"
             msg += (
-                f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
+                f"\nThời gian chờ: {get_readable_time(self._timeout - (time() - self._time))}"
             )
             buttons = ButtonMaker()
             for remote in self._sections:
                 buttons.data_button(remote, f"rcq re {remote}:")
             if self._rc_user and self._rc_owner:
-                buttons.data_button("Back", "rcq back re", position="footer")
-            buttons.data_button("Cancel", "rcq cancel", position="footer")
+                buttons.data_button("Quay lại", "rcq back re", position="footer")
+            buttons.data_button("Hủy", "rcq cancel", position="footer")
             button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
 
     async def list_config(self):
         if self._rc_user and self._rc_owner:
-            msg = "Choose Rclone config:" + (
-                "\nTransfer Type: Download"
+            msg = "Chọn cấu hình Rclone:" + (
+                "\nLoại chuyển: Tải xuống"
                 if self.list_status == "rcd"
-                else "\nTransfer Type: Upload"
+                else "\nLoại chuyển: Tải lên"
             )
             msg += (
-                f"\nTimeout: {get_readable_time(self._timeout - (time() - self._time))}"
+                f"\nThời gian chờ: {get_readable_time(self._timeout - (time() - self._time))}"
             )
             buttons = ButtonMaker()
-            buttons.data_button("Owner Config", "rcq owner")
-            buttons.data_button("My Config", "rcq user")
-            buttons.data_button("Cancel", "rcq cancel")
+            buttons.data_button("Cấu hình của chủ sở hữu", "rcq owner")
+            buttons.data_button("Cấu hình của tôi", "rcq user")
+            buttons.data_button("Hủy", "rcq cancel")
             button = buttons.build_menu(2)
             await self._send_list_message(msg, button)
         else:
