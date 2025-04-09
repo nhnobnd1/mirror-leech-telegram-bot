@@ -500,10 +500,10 @@ class RcloneTransferHelper:
                 pass
         if self._is_download:
             LOGGER.info(f"Cancelling Download: {self._listener.name}")
-            await self._listener.on_download_error("Download stopped by user!")
+            await self._listener.on_download_error("Tải xuống đã bị dừng bởi người dùng!")
         elif self._is_upload:
             LOGGER.info(f"Cancelling Upload: {self._listener.name}")
-            await self._listener.on_upload_error("your upload has been stopped!")
+            await self._listener.on_upload_error("quá trình tải lên của bạn đã bị dừng!")
         else:
             LOGGER.info(f"Cancelling Clone: {self._listener.name}")
-            await self._listener.on_upload_error("your clone has been stopped!")
+            await self._listener.on_upload_error("quá trình nhân bản của bạn đã bị dừng!")

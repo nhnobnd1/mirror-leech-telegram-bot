@@ -109,4 +109,4 @@ class JDownloaderStatus:
         await jdownloader.device.downloads.remove_links(package_ids=jd_downloads[self._gid]["ids"])
         async with jd_lock:
             del jd_downloads[self._gid]
-        await self.listener.on_download_error("Download cancelled by user!")
+        await self.listener.on_download_error("Tải xuống đã bị hủy bởi người dùng!")

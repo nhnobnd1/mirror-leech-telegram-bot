@@ -86,19 +86,19 @@ async def status_pages(_, query):
     elif data[2] == "ov":
         message = query.message
         tasks = {
-            "Download": 0,
-            "Upload": 0,
-            "Seed": 0,
-            "Archive": 0,
-            "Extract": 0,
-            "Split": 0,
-            "QueueDl": 0,
-            "QueueUp": 0,
-            "Clone": 0,
-            "CheckUp": 0,
-            "Pause": 0,
-            "SamVid": 0,
-            "ConvertMedia": 0,
+            "Tải xuống": 0,
+            "Tải lên": 0,
+            "Chia sẻ": 0,
+            "Lưu trữ": 0,
+            "Giải nén": 0,
+            "Chia nhỏ": 0,
+            "Hàng đợi TLXuống": 0,
+            "Hàng đợi TLLên": 0,
+            "Nhân bản": 0,
+            "Kiểm tra": 0,
+            "Tạm dừng": 0,
+            "Video mẫu": 0,
+            "Chuyển đổi": 0,
         }
         dl_speed = 0
         up_speed = 0
@@ -107,42 +107,42 @@ async def status_pages(_, query):
             for download in task_dict.values():
                 match await sync_to_async(download.status):
                     case MirrorStatus.STATUS_DOWNLOADING:
-                        tasks["Download"] += 1
+                        tasks["Tải xuống"] += 1
                         dl_speed += speed_string_to_bytes(download.speed())
                     case MirrorStatus.STATUS_UPLOADING:
-                        tasks["Upload"] += 1
+                        tasks["Tải lên"] += 1
                         up_speed += speed_string_to_bytes(download.speed())
                     case MirrorStatus.STATUS_SEEDING:
-                        tasks["Seed"] += 1
+                        tasks["Chia sẻ"] += 1
                         seed_speed += speed_string_to_bytes(download.seed_speed())
                     case MirrorStatus.STATUS_ARCHIVING:
-                        tasks["Archive"] += 1
+                        tasks["Lưu trữ"] += 1
                     case MirrorStatus.STATUS_EXTRACTING:
-                        tasks["Extract"] += 1
+                        tasks["Giải nén"] += 1
                     case MirrorStatus.STATUS_SPLITTING:
-                        tasks["Split"] += 1
+                        tasks["Chia nhỏ"] += 1
                     case MirrorStatus.STATUS_QUEUEDL:
-                        tasks["QueueDl"] += 1
+                        tasks["Hàng đợi TLXuống"] += 1
                     case MirrorStatus.STATUS_QUEUEUP:
-                        tasks["QueueUp"] += 1
+                        tasks["Hàng đợi TLLên"] += 1
                     case MirrorStatus.STATUS_CLONING:
-                        tasks["Clone"] += 1
+                        tasks["Nhân bản"] += 1
                     case MirrorStatus.STATUS_CHECKING:
-                        tasks["CheckUp"] += 1
+                        tasks["Kiểm tra"] += 1
                     case MirrorStatus.STATUS_PAUSED:
-                        tasks["Pause"] += 1
+                        tasks["Tạm dừng"] += 1
                     case MirrorStatus.STATUS_SAMVID:
-                        tasks["SamVid"] += 1
+                        tasks["Video mẫu"] += 1
                     case MirrorStatus.STATUS_CONVERTING:
-                        tasks["ConvertMedia"] += 1
+                        tasks["Chuyển đổi"] += 1
                     case _:
-                        tasks["Download"] += 1
+                        tasks["Tải xuống"] += 1
                         dl_speed += speed_string_to_bytes(download.speed())
 
-        msg = f"""<b>TẢI XUỐNG:</b> {tasks['Download']} | <b>TẢI LÊN:</b> {tasks['Upload']} | <b>CHIA SẺ:</b> {tasks['Seed']} | <b>LƯU TRỮ:</b> {tasks['Archive']}
-<b>GIẢI NÉN:</b> {tasks['Extract']} | <b>CHIA NHỎ:</b> {tasks['Split']} | <b>HÀNG ĐỢI TẢI XUỐNG:</b> {tasks['QueueDl']} | <b>HÀNG ĐỢI TẢI LÊN:</b> {tasks['QueueUp']}
-<b>NHÂN BẢN:</b> {tasks['Clone']} | <b>KIỂM TRA:</b> {tasks['CheckUp']} | <b>TẠM DỪNG:</b> {tasks['Pause']} | <b>VIDEO MẪU:</b> {tasks['SamVid']}
-<b>CHUYỂN ĐỔI:</b> {tasks['ConvertMedia']}
+        msg = f"""<b>TẢI XUỐNG:</b> {tasks['Tải xuống']} | <b>TẢI LÊN:</b> {tasks['Tải lên']} | <b>CHIA SẺ:</b> {tasks['Chia sẻ']} | <b>LƯU TRỮ:</b> {tasks['Lưu trữ']}
+<b>GIẢI NÉN:</b> {tasks['Giải nén']} | <b>CHIA NHỎ:</b> {tasks['Chia nhỏ']} | <b>HÀNG ĐỢI TẢI XUỐNG:</b> {tasks['Hàng đợi TLXuống']} | <b>HÀNG ĐỢI TẢI LÊN:</b> {tasks['Hàng đợi TLLên']}
+<b>NHÂN BẢN:</b> {tasks['Nhân bản']} | <b>KIỂM TRA:</b> {tasks['Kiểm tra']} | <b>TẠM DỪNG:</b> {tasks['Tạm dừng']} | <b>VIDEO MẪU:</b> {tasks['Video mẫu']}
+<b>CHUYỂN ĐỔI:</b> {tasks['Chuyển đổi']}
 
 <b>TỐC ĐỘ TẢI XUỐNG TỔNG:</b> {get_readable_file_size(dl_speed)}/s
 <b>TỐC ĐỘ TẢI LÊN TỔNG:</b> {get_readable_file_size(up_speed)}/s

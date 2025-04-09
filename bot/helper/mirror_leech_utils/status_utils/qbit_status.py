@@ -101,10 +101,10 @@ class QbittorrentStatus:
         if not self.seeding:
             if self.queued:
                 LOGGER.info(f"Cancelling QueueDL: {self.name()}")
-                msg = "task have been removed from queue/download"
+                msg = "tác vụ đã bị xóa khỏi hàng đợi/tải xuống"
             else:
                 LOGGER.info(f"Cancelling Download: {self._info.name}")
-                msg = "Download stopped by user!"
+                msg = "Tải xuống đã bị dừng bởi người dùng!"
             await sleep(0.3)
             await gather(
                 self.listener.on_download_error(msg),

@@ -32,18 +32,18 @@ async def cancel_task(_, message):
         else:
             task = await get_task_by_gid(gid)
             if task is None:
-                await send_message(message, f"GID: <code>{gid}</code> Not Found.")
+                await send_message(message, f"GID: <code>{gid}</code> Không tìm thấy.")
                 return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if task is None:
-            await send_message(message, "This is not an active task!")
+            await send_message(message, "Đây không phải là tác vụ đang hoạt động!")
             return
     elif len(msg) == 1:
         msg = (
-            "Reply to an active Command message which was used to start the download"
-            f" or send <code>/{BotCommands.CancelTaskCommand[0]} GID</code> to cancel it!"
+            "Trả lời tin nhắn lệnh đang hoạt động đã được sử dụng để bắt đầu tải xuống"
+            f" hoặc gửi <code>/{BotCommands.CancelTaskCommand[0]} GID</code> để hủy nó!"
         )
         await send_message(message, msg)
         return
@@ -52,7 +52,7 @@ async def cancel_task(_, message):
         and task.listener.user_id != user_id
         and (user_id not in user_data or not user_data[user_id].get("is_sudo"))
     ):
-        await send_message(message, "This task is not for you!")
+        await send_message(message, "Tác vụ này không phải của bạn!")
         return
     obj = task.task()
     await obj.cancel_task()
@@ -133,11 +133,11 @@ async def cancell_all_buttons(_, message):
     async with task_dict_lock:
         count = len(task_dict)
     if count == 0:
-        await send_message(message, "No active tasks!")
+        await send_message(message, "Không có tác vụ đang hoạt động!")
         return
     is_sudo = await CustomFilters.sudo("", message)
     button = create_cancel_buttons(is_sudo, message.from_user.id)
-    can_msg = await send_message(message, "Choose tasks to cancel!", button)
+    can_msg = await send_message(message, "Chọn tác vụ để hủy!", button)
     await auto_delete_message(message, can_msg)
 
 

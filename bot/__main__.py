@@ -76,22 +76,22 @@ async def stats(_, message):
     swap = swap_memory()
     memory = virtual_memory()
     stats = (
-        f"<b>Commit Date:</b> {last_commit}\n\n"
-        f"<b>Bot Uptime:</b> {get_readable_time(time() - botStartTime)}\n"
-        f"<b>OS Uptime:</b> {get_readable_time(time() - boot_time())}\n\n"
-        f"<b>Total Disk Space:</b> {get_readable_file_size(total)}\n"
-        f"<b>Used:</b> {get_readable_file_size(used)} | <b>Free:</b> {get_readable_file_size(free)}\n\n"
-        f"<b>Upload:</b> {get_readable_file_size(net_io_counters().bytes_sent)}\n"
-        f"<b>Download:</b> {get_readable_file_size(net_io_counters().bytes_recv)}\n\n"
+        f"<b>Ngày Commit:</b> {last_commit}\n\n"
+        f"<b>Thời gian hoạt động của Bot:</b> {get_readable_time(time() - botStartTime)}\n"
+        f"<b>Thời gian hoạt động của hệ điều hành:</b> {get_readable_time(time() - boot_time())}\n\n"
+        f"<b>Tổng dung lượng ổ đĩa:</b> {get_readable_file_size(total)}\n"
+        f"<b>Đã sử dụng:</b> {get_readable_file_size(used)} | <b>Còn trống:</b> {get_readable_file_size(free)}\n\n"
+        f"<b>Tải lên:</b> {get_readable_file_size(net_io_counters().bytes_sent)}\n"
+        f"<b>Tải xuống:</b> {get_readable_file_size(net_io_counters().bytes_recv)}\n\n"
         f"<b>CPU:</b> {cpu_percent(interval=0.5)}%\n"
         f"<b>RAM:</b> {memory.percent}%\n"
         f"<b>DISK:</b> {disk}%\n\n"
-        f"<b>Physical Cores:</b> {cpu_count(logical=False)}\n"
-        f"<b>Total Cores:</b> {cpu_count(logical=True)}\n\n"
-        f"<b>SWAP:</b> {get_readable_file_size(swap.total)} | <b>Used:</b> {swap.percent}%\n"
-        f"<b>Memory Total:</b> {get_readable_file_size(memory.total)}\n"
-        f"<b>Memory Free:</b> {get_readable_file_size(memory.available)}\n"
-        f"<b>Memory Used:</b> {get_readable_file_size(memory.used)}\n"
+        f"<b>Nhân vật lý:</b> {cpu_count(logical=False)}\n"
+        f"<b>Tổng số nhân:</b> {cpu_count(logical=True)}\n\n"
+        f"<b>SWAP:</b> {get_readable_file_size(swap.total)} | <b>Đã sử dụng:</b> {swap.percent}%\n"
+        f"<b>Tổng bộ nhớ:</b> {get_readable_file_size(memory.total)}\n"
+        f"<b>Bộ nhớ còn trống:</b> {get_readable_file_size(memory.available)}\n"
+        f"<b>Bộ nhớ đã sử dụng:</b> {get_readable_file_size(memory.used)}\n"
     )
     await send_message(message, stats)
 
@@ -100,20 +100,20 @@ async def stats(_, message):
 async def start(client, message):
     buttons = ButtonMaker()
     buttons.url_button(
-        "Repo", "https://www.github.com/anasty17/mirror-leech-telegram-bot"
+        "Mã nguồn", "https://www.github.com/anasty17/mirror-leech-telegram-bot"
     )
-    buttons.url_button("Code Owner", "https://t.me/anas_tayyar")
+    buttons.url_button("Tác giả mã", "https://t.me/anas_tayyar")
     reply_markup = buttons.build_menu(2)
     if await CustomFilters.authorized(client, message):
         start_string = f"""
-This bot can mirror all your links|files|torrents to Google Drive or any rclone cloud or to telegram.
-Type /{BotCommands.HelpCommand} to get a list of available commands
+Bot này có thể phản chiếu tất cả các liên kết|tệp|torrents của bạn lên Google Drive hoặc bất kỳ đám mây rclone nào hoặc lên telegram.
+Nhập /{BotCommands.HelpCommand} để nhận danh sách các lệnh có sẵn
 """
         await send_message(message, start_string, reply_markup)
     else:
         await send_message(
             message,
-            "You Are not authorized user! Deploy your own mirror-leech bot",
+            "Bạn không phải là người dùng được ủy quyền! Hãy triển khai bot mirror-leech của riêng bạn",
             reply_markup,
         )
 
@@ -121,7 +121,7 @@ Type /{BotCommands.HelpCommand} to get a list of available commands
 @new_task
 async def restart(_, message):
     intervals["stopAll"] = True
-    restart_message = await send_message(message, "Restarting...")
+    restart_message = await send_message(message, "Đang khởi động lại...")
     if scheduler.running:
         scheduler.shutdown(wait=False)
     if qb := intervals["qb"]:
@@ -156,7 +156,7 @@ async def restart(_, message):
 @new_task
 async def ping(_, message):
     start_time = int(round(time() * 1000))
-    reply = await send_message(message, "Starting Ping")
+    reply = await send_message(message, "Đang bắt đầu Ping")
     end_time = int(round(time() * 1000))
     await edit_message(reply, f"{end_time - start_time} ms")
 
@@ -167,43 +167,43 @@ async def log(_, message):
 
 
 help_string = f"""
-NOTE: Try each command without any argument to see more detalis.
-/{BotCommands.MirrorCommand[0]} or /{BotCommands.MirrorCommand[1]}: Start mirroring to cloud.
-/{BotCommands.QbMirrorCommand[0]} or /{BotCommands.QbMirrorCommand[1]}: Start Mirroring to cloud using qBittorrent.
-/{BotCommands.JdMirrorCommand[0]} or /{BotCommands.JdMirrorCommand[1]}: Start Mirroring to cloud using JDownloader.
-/{BotCommands.NzbMirrorCommand[0]} or /{BotCommands.NzbMirrorCommand[1]}: Start Mirroring to cloud using Sabnzbd.
-/{BotCommands.YtdlCommand[0]} or /{BotCommands.YtdlCommand[1]}: Mirror yt-dlp supported link.
-/{BotCommands.LeechCommand[0]} or /{BotCommands.LeechCommand[1]}: Start leeching to Telegram.
-/{BotCommands.QbLeechCommand[0]} or /{BotCommands.QbLeechCommand[1]}: Start leeching using qBittorrent.
-/{BotCommands.JdLeechCommand[0]} or /{BotCommands.JdLeechCommand[1]}: Start leeching using JDownloader.
-/{BotCommands.NzbLeechCommand[0]} or /{BotCommands.NzbLeechCommand[1]}: Start leeching using Sabnzbd.
-/{BotCommands.YtdlLeechCommand[0]} or /{BotCommands.YtdlLeechCommand[1]}: Leech yt-dlp supported link.
-/{BotCommands.CloneCommand} [drive_url]: Copy file/folder to Google Drive.
-/{BotCommands.CountCommand} [drive_url]: Count file/folder of Google Drive.
-/{BotCommands.DeleteCommand} [drive_url]: Delete file/folder from Google Drive (Only Owner & Sudo).
-/{BotCommands.UserSetCommand[0]} or /{BotCommands.UserSetCommand[1]} [query]: Users settings.
-/{BotCommands.BotSetCommand[0]} or /{BotCommands.BotSetCommand[1]} [query]: Bot settings.
-/{BotCommands.SelectCommand}: Select files from torrents or nzb by gid or reply.
-/{BotCommands.CancelTaskCommand[0]} or /{BotCommands.CancelTaskCommand[1]} [gid]: Cancel task by gid or reply.
-/{BotCommands.ForceStartCommand[0]} or /{BotCommands.ForceStartCommand[1]} [gid]: Force start task by gid or reply.
-/{BotCommands.CancelAllCommand} [query]: Cancel all [status] tasks.
-/{BotCommands.ListCommand} [query]: Search in Google Drive(s).
-/{BotCommands.SearchCommand} [query]: Search for torrents with API.
-/{BotCommands.StatusCommand}: Shows a status of all the downloads.
-/{BotCommands.StatsCommand}: Show stats of the machine where the bot is hosted in.
-/{BotCommands.PingCommand}: Check how long it takes to Ping the Bot (Only Owner & Sudo).
-/{BotCommands.AuthorizeCommand}: Authorize a chat or a user to use the bot (Only Owner & Sudo).
-/{BotCommands.UnAuthorizeCommand}: Unauthorize a chat or a user to use the bot (Only Owner & Sudo).
-/{BotCommands.UsersCommand}: show users settings (Only Owner & Sudo).
-/{BotCommands.AddSudoCommand}: Add sudo user (Only Owner).
-/{BotCommands.RmSudoCommand}: Remove sudo users (Only Owner).
-/{BotCommands.RestartCommand}: Restart and update the bot (Only Owner & Sudo).
-/{BotCommands.LogCommand}: Get a log file of the bot. Handy for getting crash reports (Only Owner & Sudo).
-/{BotCommands.ShellCommand}: Run shell commands (Only Owner).
-/{BotCommands.AExecCommand}: Exec async functions (Only Owner).
-/{BotCommands.ExecCommand}: Exec sync functions (Only Owner).
-/{BotCommands.ClearLocalsCommand}: Clear {BotCommands.AExecCommand} or {BotCommands.ExecCommand} locals (Only Owner).
-/{BotCommands.RssCommand}: RSS Menu.
+LƯU Ý: Thử mỗi lệnh mà không có đối số để xem thêm chi tiết.
+/{BotCommands.MirrorCommand[0]} hoặc /{BotCommands.MirrorCommand[1]}: Bắt đầu phản chiếu lên đám mây.
+/{BotCommands.QbMirrorCommand[0]} hoặc /{BotCommands.QbMirrorCommand[1]}: Bắt đầu phản chiếu lên đám mây sử dụng qBittorrent.
+/{BotCommands.JdMirrorCommand[0]} hoặc /{BotCommands.JdMirrorCommand[1]}: Bắt đầu phản chiếu lên đám mây sử dụng JDownloader.
+/{BotCommands.NzbMirrorCommand[0]} hoặc /{BotCommands.NzbMirrorCommand[1]}: Bắt đầu phản chiếu lên đám mây sử dụng Sabnzbd.
+/{BotCommands.YtdlCommand[0]} hoặc /{BotCommands.YtdlCommand[1]}: Phản chiếu link hỗ trợ yt-dlp.
+/{BotCommands.LeechCommand[0]} hoặc /{BotCommands.LeechCommand[1]}: Bắt đầu leech lên Telegram.
+/{BotCommands.QbLeechCommand[0]} hoặc /{BotCommands.QbLeechCommand[1]}: Bắt đầu leech sử dụng qBittorrent.
+/{BotCommands.JdLeechCommand[0]} hoặc /{BotCommands.JdLeechCommand[1]}: Bắt đầu leech sử dụng JDownloader.
+/{BotCommands.NzbLeechCommand[0]} hoặc /{BotCommands.NzbLeechCommand[1]}: Bắt đầu leech sử dụng Sabnzbd.
+/{BotCommands.YtdlLeechCommand[0]} hoặc /{BotCommands.YtdlLeechCommand[1]}: Leech link hỗ trợ yt-dlp.
+/{BotCommands.CloneCommand} [drive_url]: Sao chép tệp/thư mục vào Google Drive.
+/{BotCommands.CountCommand} [drive_url]: Đếm tệp/thư mục của Google Drive.
+/{BotCommands.DeleteCommand} [drive_url]: Xóa tệp/thư mục khỏi Google Drive (Chỉ Owner & Sudo).
+/{BotCommands.UserSetCommand[0]} hoặc /{BotCommands.UserSetCommand[1]} [query]: Cài đặt người dùng.
+/{BotCommands.BotSetCommand[0]} hoặc /{BotCommands.BotSetCommand[1]} [query]: Cài đặt bot.
+/{BotCommands.SelectCommand}: Chọn tệp từ torrents hoặc nzb theo gid hoặc trả lời.
+/{BotCommands.CancelTaskCommand[0]} hoặc /{BotCommands.CancelTaskCommand[1]} [gid]: Hủy tác vụ theo gid hoặc trả lời.
+/{BotCommands.ForceStartCommand[0]} hoặc /{BotCommands.ForceStartCommand[1]} [gid]: Buộc bắt đầu tác vụ theo gid hoặc trả lời.
+/{BotCommands.CancelAllCommand} [query]: Hủy tất cả các tác vụ [trạng thái].
+/{BotCommands.ListCommand} [query]: Tìm kiếm trong Google Drive(s).
+/{BotCommands.SearchCommand} [query]: Tìm kiếm torrents với API.
+/{BotCommands.StatusCommand}: Hiển thị trạng thái của tất cả các lượt tải xuống.
+/{BotCommands.StatsCommand}: Hiển thị thống kê của máy nơi bot được lưu trữ.
+/{BotCommands.PingCommand}: Kiểm tra thời gian Ping đến Bot (Chỉ Owner & Sudo).
+/{BotCommands.AuthorizeCommand}: Ủy quyền một chat hoặc người dùng để sử dụng bot (Chỉ Owner & Sudo).
+/{BotCommands.UnAuthorizeCommand}: Hủy ủy quyền một chat hoặc người dùng để sử dụng bot (Chỉ Owner & Sudo).
+/{BotCommands.UsersCommand}: Hiển thị cài đặt người dùng (Chỉ Owner & Sudo).
+/{BotCommands.AddSudoCommand}: Thêm người dùng sudo (Chỉ Owner).
+/{BotCommands.RmSudoCommand}: Xóa người dùng sudo (Chỉ Owner).
+/{BotCommands.RestartCommand}: Khởi động lại và cập nhật bot (Chỉ Owner & Sudo).
+/{BotCommands.LogCommand}: Lấy tệp nhật ký của bot. Hữu ích để nhận báo cáo sự cố (Chỉ Owner & Sudo).
+/{BotCommands.ShellCommand}: Chạy lệnh shell (Chỉ Owner).
+/{BotCommands.AExecCommand}: Thực thi hàm bất đồng bộ (Chỉ Owner).
+/{BotCommands.ExecCommand}: Thực thi hàm đồng bộ (Chỉ Owner).
+/{BotCommands.ClearLocalsCommand}: Xóa {BotCommands.AExecCommand} hoặc {BotCommands.ExecCommand} locals (Chỉ Owner).
+/{BotCommands.RssCommand}: Menu RSS.
 """
 
 
@@ -221,7 +221,7 @@ async def restart_notification():
 
     async def send_incomplete_task_message(cid, msg):
         try:
-            if msg.startswith("Restarted Successfully!"):
+            if msg.startswith("Khởi động lại thành công!"):
                 await bot.edit_message_text(
                     chat_id=chat_id, message_id=msg_id, text=msg
                 )
@@ -239,7 +239,7 @@ async def restart_notification():
     if config_dict["INCOMPLETE_TASK_NOTIFIER"] and config_dict["DATABASE_URL"]:
         if notifier_dict := await database.get_incomplete_tasks():
             for cid, data in notifier_dict.items():
-                msg = "Restarted Successfully!" if cid == chat_id else "Bot Restarted!"
+                msg = "Khởi động lại thành công!" if cid == chat_id else "Bot đã khởi động lại!"
                 for tag, links in data.items():
                     msg += f"\n\n{tag}: "
                     for index, link in enumerate(links, start=1):
@@ -253,7 +253,7 @@ async def restart_notification():
     if await aiopath.isfile(".restartmsg"):
         try:
             await bot.edit_message_text(
-                chat_id=chat_id, message_id=msg_id, text="Restarted Successfully!"
+                chat_id=chat_id, message_id=msg_id, text="Khởi động lại thành công!"
             )
         except:
             pass

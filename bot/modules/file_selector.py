@@ -32,7 +32,7 @@ from ..helper.telegram_helper.message_utils import (
 @new_task
 async def select(_, message):
     if not config_dict["BASE_URL"]:
-        await send_message(message, "Base URL not defined!")
+        await send_message(message, "URL cơ sở chưa được định nghĩa!")
         return
     user_id = message.from_user.id
     msg = message.text.split()
@@ -40,19 +40,19 @@ async def select(_, message):
         gid = msg[1]
         task = await get_task_by_gid(gid)
         if task is None:
-            await send_message(message, f"GID: <code>{gid}</code> Not Found.")
+            await send_message(message, f"GID: <code>{gid}</code> Không tìm thấy.")
             return
     elif reply_to_id := message.reply_to_message_id:
         async with task_dict_lock:
             task = task_dict.get(reply_to_id)
         if task is None:
-            await send_message(message, "This is not an active task!")
+            await send_message(message, "Đây không phải là tác vụ đang hoạt động!")
             return
     elif len(msg) == 1:
         msg = (
-            "Reply to an active /cmd which was used to start the download or add gid along with cmd\n\n"
-            + "This command mainly for selection incase you decided to select files from already added torrent/nzb. "
-            + "But you can always use /cmd with arg `s` to select files before download start."
+            "Trả lời một lệnh /cmd đang hoạt động được sử dụng để bắt đầu tải xuống hoặc thêm gid cùng với lệnh\n\n"
+            + "Lệnh này chủ yếu dùng để chọn trong trường hợp bạn quyết định chọn tệp từ torrent/nzb đã thêm. "
+            + "Nhưng bạn luôn có thể sử dụng /cmd với đối số `s` để chọn tệp trước khi bắt đầu tải xuống."
         )
         await send_message(message, msg)
         return
@@ -62,7 +62,7 @@ async def select(_, message):
         and task.listener.user_id != user_id
         and (user_id not in user_data or not user_data[user_id].get("is_sudo"))
     ):
-        await send_message(message, "This task is not for you!")
+        await send_message(message, "Tác vụ này không phải của bạn!")
         return
     if await sync_to_async(task.status) not in [
         MirrorStatus.STATUS_DOWNLOADING,
@@ -71,11 +71,11 @@ async def select(_, message):
     ]:
         await send_message(
             message,
-            "Task should be in download or pause (incase message deleted by wrong) or queued status (incase you have used torrent or nzb file)!",
+            "Tác vụ nên ở trạng thái tải xuống hoặc tạm dừng (trong trường hợp tin nhắn bị xóa do sai) hoặc trạng thái xếp hàng (trong trường hợp bạn đã sử dụng tệp torrent hoặc nzb)!",
         )
         return
     if task.name().startswith("[METADATA]") or task.name().startswith("Trying"):
-        await send_message(message, "Try after downloading metadata finished!")
+        await send_message(message, "Hãy thử sau khi tải xuống metadata hoàn tất!")
         return
 
     try:
@@ -99,11 +99,11 @@ async def select(_, message):
                     )
         task.listener.select = True
     except:
-        await send_message(message, "This is not a bittorrent or sabnzbd task!")
+        await send_message(message, "Đây không phải là tác vụ bittorrent hoặc sabnzbd!")
         return
 
     SBUTTONS = bt_selection_buttons(id_)
-    msg = "Your download paused. Choose files then press Done Selecting button to resume downloading."
+    msg = "Tải xuống của bạn đã tạm dừng. Chọn các tệp sau đó nhấn nút Đã Chọn Xong để tiếp tục tải xuống."
     await send_message(message, msg, SBUTTONS)
 
 
@@ -114,11 +114,11 @@ async def get_confirm(_, query):
     message = query.message
     task = await get_task_by_gid(data[2])
     if task is None:
-        await query.answer("This task has been cancelled!", show_alert=True)
+        await query.answer("Tác vụ này đã bị hủy!", show_alert=True)
         await delete_message(message)
         return
     if user_id != task.listener.user_id:
-        await query.answer("This task is not for you!", show_alert=True)
+        await query.answer("Tác vụ này không phải của bạn!", show_alert=True)
     elif data[1] == "pin":
         await query.answer(data[3], show_alert=True)
     elif data[1] == "done":

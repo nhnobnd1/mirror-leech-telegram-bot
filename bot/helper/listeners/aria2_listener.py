@@ -26,7 +26,7 @@ async def _on_download_started(api, gid):
         if task := await get_task_by_gid(gid):
             task.listener.is_torrent = True
             if task.listener.select:
-                metamsg = "Downloading Metadata, wait then you can select files. Use torrent file to avoid this wait."
+                metamsg = "Đang tải xuống Metadata, đợi sau đó bạn có thể chọn tệp. Sử dụng tệp torrent để tránh việc chờ đợi này."
                 meta = await send_message(task.listener.message, metamsg)
                 while True:
                     await sleep(0.5)
@@ -68,7 +68,7 @@ async def _on_download_complete(api, gid):
                 if not task.queued:
                     await sync_to_async(api.client.force_pause, new_gid)
                 SBUTTONS = bt_selection_buttons(new_gid)
-                msg = "Your download paused. Choose files then press Done Selecting button to start downloading."
+                msg = "Tải xuống của bạn đã tạm dừng. Chọn các tệp sau đó nhấn nút Đã Chọn Xong để bắt đầu tải xuống."
                 await send_message(task.listener.message, msg, SBUTTONS)
     elif download.is_torrent:
         if task := await get_task_by_gid(gid):
@@ -76,7 +76,7 @@ async def _on_download_complete(api, gid):
             if hasattr(task, "seeding") and task.seeding:
                 LOGGER.info(f"Cancelling Seed: {download.name} onDownloadComplete")
                 await task.listener.on_upload_error(
-                    f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}"
+                    f"Chia sẻ đã dừng với Tỷ lệ: {task.ratio()} và Thời gian: {task.seeding_time()}"
                 )
                 await sync_to_async(api.remove, [download], force=True, files=True)
     else:
@@ -127,7 +127,7 @@ async def _on_bt_download_complete(api, gid):
         if task.listener.seed and download.is_complete and await get_task_by_gid(gid):
             LOGGER.info(f"Cancelling Seed: {download.name}")
             await task.listener.on_upload_error(
-                f"Seeding stopped with Ratio: {task.ratio()} and Time: {task.seeding_time()}"
+                f"Chia sẻ đã dừng với Tỷ lệ: {task.ratio()} và Thời gian: {task.seeding_time()}"
             )
             await sync_to_async(api.remove, [download], force=True, files=True)
         elif (

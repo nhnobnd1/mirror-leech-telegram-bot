@@ -67,7 +67,7 @@ class DirectListener:
             return
         if self._failed == len(contents):
             async_to_sync(
-                self.listener.on_download_error, "All files are failed to download!"
+                self.listener.on_download_error, "Tất cả các tệp đều không tải xuống được!"
             )
             return
         async_to_sync(self.listener.on_download_complete)

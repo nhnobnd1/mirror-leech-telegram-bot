@@ -125,7 +125,7 @@ async def add_nzb(listener, path):
 
         if config_dict["BASE_URL"] and listener.select:
             if url and name.startswith("Trying"):
-                metamsg = "Fetching URL, wait then you can select files. Use nzb file to avoid this wait."
+                metamsg = "Đang lấy URL, đợi sau đó bạn có thể chọn tệp. Sử dụng tệp nzb để tránh việc chờ đợi này."
                 meta = await send_message(listener.message, metamsg)
                 while True:
                     nzb_info = await sabnzbd_client.get_downloads(nzo_ids=job_id)
@@ -142,7 +142,7 @@ async def add_nzb(listener, path):
             if not add_to_queue:
                 await sabnzbd_client.pause_job(job_id)
             SBUTTONS = bt_selection_buttons(job_id)
-            msg = "Your download paused. Choose files then press Done Selecting button to start downloading."
+            msg = "Tải xuống của bạn đã tạm dừng. Chọn các tệp sau đó nhấn nút Đã Chọn Xong để bắt đầu tải xuống."
             await send_message(listener.message, msg, SBUTTONS)
         elif listener.multi <= 1:
             await send_status_message(listener.message)
