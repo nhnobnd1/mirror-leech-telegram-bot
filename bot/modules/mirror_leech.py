@@ -6,6 +6,7 @@ from re import match as re_match
 from os import environ
 from requests import get as rget
 import json
+from motor.motor_asyncio import AsyncIOMotorClient
 
 from bot import bot, DOWNLOAD_DIR, LOGGER, bot_loop, task_dict_lock
 from ..helper.ext_utils.bot_utils import (
@@ -47,6 +48,10 @@ from ..helper.telegram_helper.bot_commands import BotCommands
 from ..helper.telegram_helper.filters import CustomFilters
 from ..helper.telegram_helper.message_utils import send_message, get_tg_link_message
 
+# MongoDB constants
+MONGO_URI = 'mongodb+srv://nhnobnd:Dunghoi1@cluster0.uha2oe3.mongodb.net/'
+DB_NAME = 'magnet-db'
+COLLECTION_NAME = 'magnets'
 
 class Mirror(TaskListener):
     def __init__(
@@ -77,6 +82,73 @@ class Mirror(TaskListener):
         self.is_leech = is_leech
         self.is_jd = is_jd
         self.is_nzb = is_nzb
+        
+    async def check_magnet_in_db(self, magnet_link):
+        try:
+            # Trích xuất hash từ magnet link 
+            hash_match = re_match(r'magnet:\?xt=urn:btih:([a-zA-Z0-9]+)', magnet_link)
+            if not hash_match:
+                return False
+                
+            magnet_hash = hash_match.group(1).lower()
+            LOGGER.info(f"Extracted hash from magnet: {magnet_hash}")
+            
+            mongo_client = AsyncIOMotorClient(MONGO_URI)
+            db = mongo_client[DB_NAME]
+            collection = db[COLLECTION_NAME]
+            
+            # Tìm kiếm bản ghi theo hash magnet thay vì toàn bộ URL
+            query = {"$or": [
+                {"url": {"$regex": magnet_hash, "$options": "i"}},
+                {"code": {"$regex": magnet_hash, "$options": "i"}}
+            ]}
+            
+            result = await collection.find_one(query)
+            return result is not None
+        except Exception as e:
+            LOGGER.error(f"Error checking magnet in database: {e}")
+            return False
+        finally:
+            if 'mongo_client' in locals():
+                mongo_client.close()
+                
+    async def save_magnet_to_db(self, magnet_link):
+        try:
+            # Trích xuất hash từ magnet link
+            hash_match = re_match(r'magnet:\?xt=urn:btih:([a-zA-Z0-9]+)', magnet_link)
+            if not hash_match:
+                LOGGER.error(f"Không thể trích xuất hash từ magnet link: {magnet_link}")
+                return
+                
+            magnet_hash = hash_match.group(1).lower()
+            
+            mongo_client = AsyncIOMotorClient(MONGO_URI)
+            db = mongo_client[DB_NAME]
+            collection = db[COLLECTION_NAME]
+            
+            # Get current date
+            from datetime import datetime
+            current_date = datetime.now()
+            
+            # Create document to save
+            document = {
+                "url": magnet_link,
+                "code": magnet_link,
+                "hash": magnet_hash,
+                "source": "mirror_leech",
+                "date": current_date.strftime("%Y-%m-%d"),
+                "created_at": current_date
+            }
+            
+            # Insert document into collection
+            await collection.insert_one(document)
+            LOGGER.info(f"Đã lưu magnet vào database với hash: {magnet_hash}")
+            
+        except Exception as e:
+            LOGGER.error(f"Error saving magnet to database: {e}")
+        finally:
+            if 'mongo_client' in locals():
+                mongo_client.close()
 
     async def new_event(self):
         text = self.message.text.split("\n")
@@ -127,7 +199,6 @@ class Mirror(TaskListener):
         self.join = args["-j"]
         self.thumb = args["-t"]
         self.split_size = args["-sp"]
-        self.sample_video = args["-sv"]
         self.screen_shots = args["-ss"]
         self.force_run = args["-f"]
         self.force_download = args["-fd"]
@@ -311,6 +382,12 @@ class Mirror(TaskListener):
         if len(self.link) > 0:
             LOGGER.info(self.link)
 
+        # Check if link is a magnet link and exists in database
+        if is_magnet(self.link) and await self.check_magnet_in_db(self.link):
+            await send_message(self.message, "Magnet link đã tồn tại trong database. Không cần mirror/leech lại.")
+            await self.remove_from_same_dir()
+            return
+
         try:
             await self.before_start()
         except Exception as e:
@@ -346,31 +423,28 @@ class Mirror(TaskListener):
                         await self.remove_from_same_dir()
                         return
 
-        if file_ is not None:
-            await TelegramDownloadHelper(self).add_download(
-                reply_to, f"{path}/", session
-            )
-        elif isinstance(self.link, dict):
-            await add_direct_download(self, path)
-        elif self.is_jd:
-            await add_jd_download(self, path)
-        elif self.is_qbit:
-            await add_qb_torrent(self, path, ratio, seed_time)
+        if self.is_jd:
+            await add_jd_download(self, path, headers)
         elif self.is_nzb:
-            await add_nzb(self, path)
+            await add_nzb(self)
+        elif self.is_qbit and (
+            is_magnet(self.link) or self.link.endswith(".torrent")
+        ):
+            await add_qb_torrent(self, path, ratio, seed_time)
+        elif is_magnet(self.link) or self.link.endswith(".torrent"):
+            await add_aria2c_download(self, path, headers, ratio, seed_time)
         elif is_rclone_path(self.link):
-            await add_rclone_download(self, f"{path}/")
+            await add_rclone_download(self, path)
         elif is_gdrive_link(self.link) or is_gdrive_id(self.link):
             await add_gd_download(self, path)
+        elif file_:
+            await TelegramDownloadHelper(self).download(reply_to, path)
         else:
-            ussr = args["-au"]
-            pssw = args["-ap"]
-            if ussr or pssw:
-                auth = f"{ussr}:{pssw}"
-                headers += (
-                    f" authorization: Basic {b64encode(auth.encode()).decode('ascii')}"
-                )
-            await add_aria2c_download(self, path, headers, ratio, seed_time)
+            await add_direct_download(self, path, headers)
+            
+        # Save magnet to database if task was successful
+        if is_magnet(self.link) and self.mid in task_dict:
+            await self.save_magnet_to_db(self.link)
 
 
 async def mirror(client, message):
