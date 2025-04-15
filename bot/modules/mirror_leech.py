@@ -85,12 +85,25 @@ class Mirror(TaskListener):
         
     async def check_magnet_in_db(self, magnet_link):
         try:
+            # Trích xuất hash từ magnet link 
+            hash_match = re_match(r'magnet:\?xt=urn:btih:([a-zA-Z0-9]+)', magnet_link)
+            if not hash_match:
+                return False
+                
+            magnet_hash = hash_match.group(1).lower()
+            LOGGER.info(f"Extracted hash from magnet: {magnet_hash}")
+            
             mongo_client = AsyncIOMotorClient(MONGO_URI)
             db = mongo_client[DB_NAME]
             collection = db[COLLECTION_NAME]
             
-            # Check if magnet link exists in database
-            result = await collection.find_one({"url": magnet_link})
+            # Tìm kiếm bản ghi theo hash magnet thay vì toàn bộ URL
+            query = {"$or": [
+                {"url": {"$regex": magnet_hash, "$options": "i"}},
+                {"code": {"$regex": magnet_hash, "$options": "i"}}
+            ]}
+            
+            result = await collection.find_one(query)
             return result is not None
         except Exception as e:
             LOGGER.error(f"Error checking magnet in database: {e}")
@@ -101,6 +114,14 @@ class Mirror(TaskListener):
                 
     async def save_magnet_to_db(self, magnet_link):
         try:
+            # Trích xuất hash từ magnet link
+            hash_match = re_match(r'magnet:\?xt=urn:btih:([a-zA-Z0-9]+)', magnet_link)
+            if not hash_match:
+                LOGGER.error(f"Không thể trích xuất hash từ magnet link: {magnet_link}")
+                return
+                
+            magnet_hash = hash_match.group(1).lower()
+            
             mongo_client = AsyncIOMotorClient(MONGO_URI)
             db = mongo_client[DB_NAME]
             collection = db[COLLECTION_NAME]
@@ -113,6 +134,7 @@ class Mirror(TaskListener):
             document = {
                 "url": magnet_link,
                 "code": magnet_link,
+                "hash": magnet_hash,
                 "source": "mirror_leech",
                 "date": current_date.strftime("%Y-%m-%d"),
                 "created_at": current_date
@@ -120,7 +142,7 @@ class Mirror(TaskListener):
             
             # Insert document into collection
             await collection.insert_one(document)
-            LOGGER.info(f"Saved magnet to database: {magnet_link}")
+            LOGGER.info(f"Đã lưu magnet vào database với hash: {magnet_hash}")
             
         except Exception as e:
             LOGGER.error(f"Error saving magnet to database: {e}")
