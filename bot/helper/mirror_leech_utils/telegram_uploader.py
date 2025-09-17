@@ -130,8 +130,11 @@ class TelegramUploader:
         return True
 
     async def _prepare_file(self, file_, dirpath, delete_file):
+        # Remove hhd800.com@ prefix from filename if present
+        clean_filename = file_.replace("hhd800.com@", "")
+
         if self._lprefix:
-            cap_mono = f"{self._lprefix} <code>{file_}</code>"
+            cap_mono = f"{self._lprefix} <code>{clean_filename}</code>"
             self._lprefix = re_sub("<.*?>", "", self._lprefix)
             if (
                 self._listener.seed
@@ -141,26 +144,26 @@ class TelegramUploader:
             ):
                 dirpath = f"{dirpath}/copied_mltb"
                 await makedirs(dirpath, exist_ok=True)
-                new_path = ospath.join(dirpath, f"{self._lprefix} {file_}")
+                new_path = ospath.join(dirpath, f"{self._lprefix} {clean_filename}")
                 self._up_path = await copy(self._up_path, new_path)
             else:
-                new_path = ospath.join(dirpath, f"{self._lprefix} {file_}")
+                new_path = ospath.join(dirpath, f"{self._lprefix} {clean_filename}")
                 await rename(self._up_path, new_path)
                 self._up_path = new_path
         else:
-            cap_mono = f"<code>{file_}</code>"
-        if len(file_) > 60:
-            if is_archive(file_):
-                name = get_base_name(file_)
-                ext = file_.split(name, 1)[1]
-            elif match := re_match(r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+$)", file_):
+            cap_mono = f"<code>{clean_filename}</code>"
+        if len(clean_filename) > 60:
+            if is_archive(clean_filename):
+                name = get_base_name(clean_filename)
+                ext = clean_filename.split(name, 1)[1]
+            elif match := re_match(r".+(?=\..+\.0*\d+$)|.+(?=\.part\d+\..+$)", clean_filename):
                 name = match.group(0)
-                ext = file_.split(name, 1)[1]
-            elif len(fsplit := ospath.splitext(file_)) > 1:
+                ext = clean_filename.split(name, 1)[1]
+            elif len(fsplit := ospath.splitext(clean_filename)) > 1:
                 name = fsplit[0]
                 ext = fsplit[1]
             else:
-                name = file_
+                name = clean_filename
                 ext = ""
             extn = len(ext)
             remain = 60 - extn
@@ -266,6 +269,12 @@ class TelegramUploader:
                             f"{self._up_path} size is zero, telegram don't upload zero size files"
                         )
                         self._corrupted += 1
+                        continue
+                    # Only upload files >= 100MB (100 * 1024 * 1024 = 104857600 bytes)
+                    if f_size < 104857600:
+                        LOGGER.info(
+                            f"Skipping {self._up_path} - file size ({f_size} bytes) is less than 100MB"
+                        )
                         continue
                     if self._listener.is_cancelled:
                         return
